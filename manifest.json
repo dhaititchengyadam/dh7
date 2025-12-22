@@ -9,7 +9,7 @@
   "display": "standalone",
   "display_override": ["fullscreen","standalone","minimal-ui"],
   "orientation": "portrait",
-  "theme_color": "#FFFFFFFF",
+  "theme_color": "#0000000",
   "background_color": "#FFFFFFFF",
   "description": "D'H7 : DIGITAL HUB 7 parle avec qui que ce soi tant qu'il a un D'H7 ou un TFID",
   "icons": [
