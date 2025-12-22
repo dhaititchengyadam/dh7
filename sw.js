@@ -1,16 +1,15 @@
-self.addEventListener('push', event => {
-  const data = event.data ? event.data.json() : {title: "D'H7", body: "Ou gen yon nouvo mesaj"};
+// sw.js (Ajoute sa nan yon fichye sw.js nan rasin sit ou a)
+self.addEventListener('push', function(event) {
+  const data = event.data.json();
   const options = {
     body: data.body,
-    icon: '/asset/IMG_7023.png',
-    badge: '/asset/IMG_7023.png',
-    vibrate: [200, 100, 200],
-    data: { url: 'https://www.adamdh7.org' }
+    icon: data.icon,
+    data: { url: data.url }
   };
-  event.waitUntil(self.registration.showNotification(data.title || "Nouvo mesaj", options));
+  event.waitUntil(self.registration.showNotification(data.title, options));
 });
 
-self.addEventListener('notificationclick', event => {
+self.addEventListener('notificationclick', function(event) {
   event.notification.close();
   event.waitUntil(clients.openWindow(event.notification.data.url));
 });
