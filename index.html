@@ -1283,7 +1283,7 @@
                     const registration = await navigator.serviceWorker.ready;
                     const subscription = await registration.pushManager.subscribe({
                         userVisibleOnly: true,
-                        applicationServerKey: urlB64ToUint8Array('YOUR_VAPID_PUBLIC_KEY_HERE') // Remplace par la clé VAPID publique du serveur
+                        applicationServerKey: urlB64ToUint8Array('BFbcgVOdhydPHrXNgaelinKRIj4wUqTzLi13smhuzuzlWE_0F0evS2UxPm3fu-_gdVwNc5o3ursVFTKayf1Mndc') // Remplace par la clé VAPID publique du serveur
                     });
                     await fetch(`${API}/subscribe`, {
                         method: 'POST',
