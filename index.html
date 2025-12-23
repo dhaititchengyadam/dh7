@@ -720,8 +720,10 @@
                         const prefix = lastNonOkMsg && lastNonOkMsg.from === user.tfid ? translations[currentLanguage].you + ' ' : '';
                         const lastMsgText = prefix + (lastNonOkMsg ? lastNonOkMsg.text : '');
                         const unread = getUnreadCount(messages, u.tfid);
+                        const timestamp = lastNonOkMsg ? lastNonOkMsg.timestamp : 0;
                         const card = document.createElement('div');
                         card.className = "contact-card";
+                        card.dataset.timestamp = timestamp;
                         card.innerHTML = `
                             <div class="avatar">${u.nom[0]}</div>
                             <div class="flex-1">
@@ -743,6 +745,7 @@
                 });
                 const contacts = await Promise.all(promises);
                 const filteredContacts = contacts.filter(c => c);
+                filteredContacts.sort((a, b) => parseInt(b.dataset.timestamp) - parseInt(a.dataset.timestamp));
                 filteredContacts.forEach(c => container.appendChild(c));
                 if (filteredContacts.length === 0) {
                     const p = document.createElement('p');
@@ -801,6 +804,8 @@
                     const lastNonOkMsg = [...messages].reverse().find(m => m.text !== 'ok');
                     const prefix = lastNonOkMsg && lastNonOkMsg.from === user.tfid ? translations[currentLanguage].you + ' ' : '';
                     const lastMsgText = prefix + (lastNonOkMsg ? lastNonOkMsg.text : '');
+                    const timestamp = lastNonOkMsg ? lastNonOkMsg.timestamp : 0;
+                    card.dataset.timestamp = timestamp;
                     const p = card.querySelector('p.text-zinc-500');
                     if (p) p.textContent = lastMsgText.substring(0, 30) + (lastMsgText.length > 30 ? '...' : '');
                 } catch (e) {
@@ -828,8 +833,10 @@
                         const prefix = lastNonOkMsg && lastNonOkMsg.from === user.tfid ? translations[currentLanguage].you + ' ' : '';
                         const lastMsgText = prefix + (lastNonOkMsg ? lastNonOkMsg.text : '');
                         const unread = getUnreadCount(messages, u.tfid);
+                        const timestamp = lastNonOkMsg ? lastNonOkMsg.timestamp : 0;
                         const card = document.createElement('div');
                         card.className = "contact-card";
+                        card.dataset.timestamp = timestamp;
                         card.innerHTML = `
                             <div class="avatar">${u.nom[0]}</div>
                             <div class="flex-1">
@@ -856,6 +863,12 @@
                 if (noContactsP && container.querySelectorAll('.contact-card').length > 0) {
                     noContactsP.remove();
                 }
+
+                // Re-sort all contacts after updates
+                let allCards = Array.from(container.querySelectorAll('.contact-card'));
+                allCards.sort((a, b) => parseInt(b.dataset.timestamp) - parseInt(a.dataset.timestamp));
+                container.innerHTML = '';
+                allCards.forEach(c => container.appendChild(c));
             } catch (e) {
                 console.error(e);
             }
