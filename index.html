@@ -590,7 +590,7 @@
 
             if (screenId === 'scr-home') {
                 loadContacts();
-                homeInterval = setInterval(loadContacts, 3000);
+                homeInterval = setInterval(updateContacts, 3000);
             } else {
                 clearInterval(homeInterval);
             }
@@ -700,7 +700,6 @@
             shownTfids.clear();
             const container = document.getElementById('contact-list');
             container.innerHTML = '';
-            let totalUnread = 0;
             try {
                 const res = await fetch(`${API}/users`);
                 if (!res.ok) throw new Error('Failed to fetch users');
@@ -718,7 +717,6 @@
                         const hasConversation = messages.some(m => m.text !== 'ok');
                         if (!hasConversation) return null;
                         const lastNonOkMsg = [...messages].reverse().find(m => m.text !== 'ok');
-                        const lastTime = lastNonOkMsg ? new Date(lastNonOkMsg.timestamp).getTime() : 0;
                         const prefix = lastNonOkMsg && lastNonOkMsg.from === user.tfid ? translations[currentLanguage].you + ' ' : '';
                         const lastMsgText = prefix + (lastNonOkMsg ? lastNonOkMsg.text : '');
                         const unread = getUnreadCount(messages, u.tfid);
@@ -736,27 +734,22 @@
                             ${unread > 0 ? `<span class="unread-badge">+${unread}</span>` : ''}
                         `;
                         addLongPressListeners(card, () => showContactPreview(u), () => openChat(u));
-                        return {card, lastTime, unread, tfid: u.tfid};
+                        shownTfids.add(u.tfid);
+                        return card;
                     } catch (e) {
                         console.error(e);
                         return null;
                     }
                 });
-                const contactData = (await Promise.all(promises)).filter(c => c);
-                contactData.sort((a, b) => b.lastTime - a.lastTime);
-                contactData.forEach(c => {
-                    totalUnread += c.unread;
-                    shownTfids.add(c.tfid);
-                    container.appendChild(c.card);
-                });
-                if (contactData.length === 0) {
+                const contacts = await Promise.all(promises);
+                const filteredContacts = contacts.filter(c => c);
+                filteredContacts.forEach(c => container.appendChild(c));
+                if (filteredContacts.length === 0) {
                     const p = document.createElement('p');
                     p.className = "text-zinc-700 text-center mt-20 no-contacts";
                     p.textContent = translations[currentLanguage].no_contacts;
                     container.appendChild(p);
                 }
-                localStorage.setItem('totalUnread', totalUnread);
-                updateAppBadge(totalUnread);
             } catch (e) {
                 console.error(e);
             }
@@ -783,7 +776,6 @@
         async function updateContacts() {
             const container = document.getElementById('contact-list');
             const cards = Array.from(container.querySelectorAll('.contact-card'));
-            let totalUnread = 0;
             await Promise.all(cards.map(async card => {
                 const tfid = card.querySelector('.tfid').textContent;
                 try {
@@ -795,7 +787,6 @@
                     if (!msgsRes.ok) throw new Error('Failed to fetch messages');
                     const messages = await msgsRes.json();
                     const unread = getUnreadCount(messages, tfid);
-                    totalUnread += unread;
                     let badge = card.querySelector('.unread-badge');
                     if (unread > 0) {
                         if (!badge) {
@@ -837,7 +828,6 @@
                         const prefix = lastNonOkMsg && lastNonOkMsg.from === user.tfid ? translations[currentLanguage].you + ' ' : '';
                         const lastMsgText = prefix + (lastNonOkMsg ? lastNonOkMsg.text : '');
                         const unread = getUnreadCount(messages, u.tfid);
-                        totalUnread += unread;
                         const card = document.createElement('div');
                         card.className = "contact-card";
                         card.innerHTML = `
@@ -866,18 +856,8 @@
                 if (noContactsP && container.querySelectorAll('.contact-card').length > 0) {
                     noContactsP.remove();
                 }
-                localStorage.setItem('totalUnread', totalUnread);
-                updateAppBadge(totalUnread);
             } catch (e) {
                 console.error(e);
-            }
-        }
-
-        function updateAppBadge(count) {
-            if ('setAppBadge' in navigator) {
-                navigator.setAppBadge(count);
-            } else if ('clearAppBadge' in navigator && count === 0) {
-                navigator.clearAppBadge();
             }
         }
 
@@ -928,9 +908,6 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ sender_tfid: activePeer.tfid, receiver_tfid: user.tfid }) 
                     });
-                    let totalUnread = parseInt(localStorage.getItem('totalUnread') || '0') - unread;
-                    localStorage.setItem('totalUnread', totalUnread);
-                    updateAppBadge(totalUnread);
                 }
                 lastViewed[peer.tfid] = Date.now();
                 localStorage.setItem('lastViewed', JSON.stringify(lastViewed));
@@ -1028,39 +1005,6 @@
             document.getElementById('m-tfid').innerText = user.tfid;
             document.getElementById('m-init').innerText = user.nom[0];
             handleRouting();
-            setupNotifications();
-        }
-
-        async function setupNotifications() {
-            if ('serviceWorker' in navigator && 'PushManager' in window) {
-                try {
-                    const permission = await Notification.requestPermission();
-                    if (permission !== 'granted') return;
-                    const registration = await navigator.serviceWorker.ready;
-                    const subscription = await registration.pushManager.subscribe({
-                        userVisibleOnly: true,
-                        applicationServerKey: urlB64ToUint8Array('YOUR_VAPID_PUBLIC_KEY_HERE') // Remplace par la clé VAPID publique du serveur
-                    });
-                    await fetch(`${API}/subscribe`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ tfid: user.tfid, subscription: subscription })
-                    });
-                } catch (e) {
-                    console.error('Notification setup failed:', e);
-                }
-            }
-        }
-
-        function urlB64ToUint8Array(base64String) {
-            const padding = '='.repeat((4 - base64String.length % 4) % 4);
-            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-            const rawData = window.atob(base64);
-            const outputArray = new Uint8Array(rawData.length);
-            for (let i = 0; i < rawData.length; ++i) {
-                outputArray[i] = rawData.charCodeAt(i);
-            }
-            return outputArray;
         }
 
         function handleRouting() {
@@ -1235,16 +1179,6 @@
             navTo('scr-auth');
         }
         document.getElementById('msg-input').onkeypress = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').then(function(registration) {
-                    console.log('Service Worker registered');
-                }).catch(function(err) {
-                    console.log('Service Worker registration failed: ', err);
-                });
-            });
-        }
     </script>
 </body>
 </html>
