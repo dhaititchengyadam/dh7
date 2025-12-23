@@ -698,8 +698,6 @@
         async function loadContacts() {
             const container = document.getElementById('contact-list');
             container.innerHTML = '';
-            let totalUnread = 0;
-            let contactsData = [];
             try {
                 const res = await fetch(`${API}/users`);
                 if (!res.ok) throw new Error('Failed to fetch users');
@@ -714,55 +712,43 @@
                         });
                         if (!msgsRes.ok) throw new Error('Failed to fetch messages');
                         const messages = await msgsRes.json();
-                        const hasConversation = messages.length > 0;
-                        if (!hasConversation) return null;
+                        if (messages.length === 0) return null;
                         const lastMsg = messages[messages.length - 1];
                         const lastTime = lastMsg ? new Date(lastMsg.time).getTime() : 0;
-                        const lastNonOkMsg = [...messages].reverse().find(m => true); // Removed 'ok' filter
-                        const prefix = lastNonOkMsg && lastNonOkMsg.from === user.tfid ? translations[currentLanguage].you + ' ' : '';
-                        const lastMsgText = prefix + (lastNonOkMsg ? lastNonOkMsg.text : '');
-                        const unread = getUnreadCount(messages, u.tfid);
-                        totalUnread += unread;
-                        return { user: u, lastTime, lastMsgText, unread };
+                        const prefix = lastMsg && lastMsg.from === user.tfid ? translations[currentLanguage].you + ' ' : '';
+                        const lastMsgText = prefix + (lastMsg ? lastMsg.text : '');
+                        const card = document.createElement('div');
+                        card.className = "contact-card";
+                        card.innerHTML = `
+                            <div class="avatar">${u.nom[0]}</div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold text-lg leading-tight truncate">${u.prenom} ${u.nom}</span>
+                                    <span class="tfid text-[9px] text-zinc-700 font-mono tracking-tighter copyable" onclick="copyToClipboard('${u.tfid}')">${u.tfid}</span>
+                                </div>
+                                <p class="text-zinc-500 text-sm truncate">${lastMsgText.substring(0, 30)}${lastMsgText.length > 30 ? '...' : ''}</p>
+                            </div>
+                        `;
+                        addLongPressListeners(card, () => showContactPreview(u), () => openChat(u));
+                        return {card, lastTime};
                     } catch (e) {
                         console.error(e);
                         return null;
                     }
                 });
-                contactsData = (await Promise.all(promises)).filter(c => c);
-                contactsData.sort((a, b) => b.lastTime - a.lastTime);
-                contactsData.forEach(c => {
-                    const card = document.createElement('div');
-                    card.className = "contact-card";
-                    card.innerHTML = `
-                        <div class="avatar">${c.user.nom[0]}</div>
-                        <div class="flex-1">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-lg leading-tight truncate">${c.user.prenom} ${c.user.nom}</span>
-                                <span class="tfid text-[9px] text-zinc-700 font-mono tracking-tighter copyable" onclick="copyToClipboard('${c.user.tfid}')">${c.user.tfid}</span>
-                            </div>
-                            <p class="text-zinc-500 text-sm truncate">${c.lastMsgText.substring(0, 30)}${c.lastMsgText.length > 30 ? '...' : ''}</p>
-                        </div>
-                        ${c.unread > 0 ? `<span class="unread-badge">+${c.unread}</span>` : ''}
-                    `;
-                    addLongPressListeners(card, () => showContactPreview(c.user), () => openChat(c.user));
-                    container.appendChild(card);
-                });
-                if (contactsData.length === 0) {
+                const contacts = await Promise.all(promises);
+                const filteredContacts = contacts.filter(c => c);
+                filteredContacts.sort((a, b) => b.lastTime - a.lastTime);
+                filteredContacts.forEach(c => container.appendChild(c.card));
+                if (filteredContacts.length === 0) {
                     const p = document.createElement('p');
                     p.className = "text-zinc-700 text-center mt-20 no-contacts";
                     p.textContent = translations[currentLanguage].no_contacts;
                     container.appendChild(p);
                 }
-                localStorage.setItem('totalUnread', totalUnread);
-                updateAppBadge(totalUnread);
             } catch (e) {
                 console.error(e);
             }
-        }
-
-        function getUnreadCount(messages, fromTfid) {
-            return messages.filter(m => m.from === fromTfid && !m.read).length;
         }
 
         async function doSearch() {
@@ -797,31 +783,8 @@
             document.getElementById('chat-peer-tfid').innerText = peer.tfid;
             navTo('scr-chat');
             fetchMessages();
-            try {
-                const msgsRes = await fetch(`${API}/messages`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user1_tfid: user.tfid, user2_tfid: activePeer.tfid })
-                });
-                if (!msgsRes.ok) throw new Error('Failed to fetch messages');
-                const messages = await msgsRes.json();
-                const unread = messages.filter(m => m.from === activePeer.tfid && !m.read).length;
-                if (unread > 0) {
-                    await fetch(`${API}/mark-read`, { 
-                        method: 'POST', 
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sender_tfid: activePeer.tfid, receiver_tfid: user.tfid }) 
-                    });
-                    let totalUnread = parseInt(localStorage.getItem('totalUnread') || '0') - unread;
-                    localStorage.setItem('totalUnread', totalUnread);
-                    updateAppBadge(totalUnread);
-                    fetchMessages();
-                }
-                lastViewed[peer.tfid] = Date.now();
-                localStorage.setItem('lastViewed', JSON.stringify(lastViewed));
-            } catch (e) {
-                console.error(e);
-            }
+            lastViewed[peer.tfid] = Date.now();
+            localStorage.setItem('lastViewed', JSON.stringify(lastViewed));
             chatInterval = setInterval(fetchMessages, 3000);
         }
 
@@ -852,17 +815,6 @@
                         div.innerHTML = `<a onclick="openChatByIdentifier('${formattedId}')">${text}</a>`;
                     } else {
                         div.innerText = text;
-                    }
-                    if (isMe) {
-                        const status = document.createElement('span');
-                        status.className = 'status';
-                        let statusText = '✓';
-                        if (m.read) {
-                            statusText = '✓✓';
-                            status.classList.add('read');
-                        }
-                        status.innerText = statusText;
-                        div.appendChild(status);
                     }
                     addLongPressListeners(div, (x, y) => showCopyMenu(x, y, m.text));
                     container.appendChild(div);
@@ -1063,14 +1015,6 @@
                 document.body.appendChild(toast);
                 setTimeout(() => toast.remove(), 1500);
             }).catch(e => console.error(e));
-        }
-
-        function updateAppBadge(count) {
-            if ('setAppBadge' in navigator) {
-                navigator.setAppBadge(count);
-            } else if ('clearAppBadge' in navigator && count === 0) {
-                navigator.clearAppBadge();
-            }
         }
 
         function addLongPressListeners(element, longPressCallback, shortPressCallback = null) {
