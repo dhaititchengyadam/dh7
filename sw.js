@@ -1,10 +1,9 @@
-const CACHE_NAME = 'adamdh7-offline-v3';
+const CACHE_NAME = 'adamdh7-offline-v5';
 const OFFLINE_URL = '/offline.html';
 
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      // Nou fòse download la pou asire l antre nan kach la
       return cache.add(new Request(OFFLINE_URL, { cache: 'reload' }));
     })
   );
@@ -26,10 +25,16 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.mode === 'navigate') {
     e.respondWith(
-      fetch(e.request).catch(() => {
-        // Lè fetch la echwe (offline), li bay sa ki nan kach la
-        return caches.match(OFFLINE_URL);
-      })
+      fetch(e.request)
+        .then(response => {
+          if (response.redirected) {
+            return response;
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(OFFLINE_URL);
+        })
     );
   }
 });
