@@ -440,19 +440,6 @@
             opacity: 0;
             pointer-events: none;
         }
-
-        #recording-bar {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 0.5rem 1rem;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: var(--text-dim);
-        }
     </style>
 </head>
 <body>
@@ -522,21 +509,13 @@
         </div>
 
         <div class="input-area">
-            <div class="flex items-center gap-2">
-                <button id="file-btn" class="p-2 bg-transparent text-blue-600 hover:text-blue-700">
+            <div class="flex gap-2 items-end bg-zinc-900 rounded-full p-2 border border-zinc-800">
+                <textarea id="msg-input" data-key="message-placeholder" placeholder="Ekri yon mesaj..." class="flex-1 bg-transparent border-none p-2 outline-none text-white rounded-full" rows="1" oninput="autoResize(this)"></textarea>
+                <button onclick="sendMessage()" class="p-2 bg-transparent text-blue-600 hover:text-blue-700">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                        <path fill-rule="evenodd" d="M15.621 4.379a3 3 0 00-4.242 0l-7 7a3 3 0 004.241 4.243h.001l.497-.5a.75.75 0 011.064 1.057l-.498.501-.002.002a4.5 4.5 0 01-6.364-6.364l7-7a4.5 4.5 0 016.368 6.36l-3.455 3.458A2.25 2.25 0 019.878 15.252a.75.75 0 01-1.064-1.057a3.75 3.75 0 005.304-5.303l3.455-3.458a3 3 0 00-4.242-4.245l-.006.006z" clip-rule="evenodd" />
+                        <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
                     </svg>
                 </button>
-                <div class="flex-1 flex gap-2 items-end bg-zinc-900 rounded-full p-2 border border-zinc-800">
-                    <textarea id="msg-input" data-key="message-placeholder" placeholder="Ekri yon mesaj..." class="flex-1 bg-transparent border-none p-2 outline-none text-white rounded-full" rows="1" oninput="handleInput(this)"></textarea>
-                    <button id="action-btn" class="p-2 bg-transparent text-blue-600 hover:text-blue-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                            <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
-                            <path d="M5.25 9.75c0 .845.17 1.641.468 2.355a.75.75 0 01-.303 1.01l-1.5.75a.75.75 0 01-1.01-.303A11.97 11.97 0 013 12c0-1.905.445-3.69 1.225-5.25a.75.75 0 011.01-.303l1.5.75a.75.75 0 01.303 1.01A8.97 8.97 0 005.25 9.75zM18.75 9.75c0 .845-.17 1.641-.468 2.355a.75.75 0 00.303 1.01l1.5.75a.75.75 0 001.01-.303A11.97 11.97 0 0021 12c0-1.905-.445-3.69-1.225-5.25a.75.75 0 00-1.01-.303l-1.5.75a.75.75 0 00-.303 1.01c.298.714.468 1.51.468 2.355z" />
-                        </svg>
-                    </button>
-                </div>
             </div>
         </div>
 
@@ -568,7 +547,6 @@
                     <p id="m-tfid" class="text-xl font-mono text-white copyable" onclick="copyToClipboard(this.innerText)">---</p>
                 </div>
                 <button onclick="showLanguageSelector()" class="w-full py-5 text-white font-black tracking-widest bg-zinc-900/50 rounded-2xl border border-zinc-800" data-key="language">LANGUE</button>
-                <button onclick="showLanguageSelector()" class="w-full py-5 text-white font-black tracking-widest bg-zinc-900/50 rounded-2xl border border-zinc-800" data-key="language">LANGUE</button>
                 <button onclick="logout()" class="w-full py-5 text-red-500 font-black tracking-widest bg-red-500/5 rounded-2xl border border-red-500/10" data-key="logout">DEKONEKTE</button>
                 <button onclick="navTo('scr-home')" class="w-full py-5 text-zinc-500 font-bold" data-key="close">RETOUNEN</button>
             </div>
@@ -588,12 +566,9 @@
         <button id="copy-btn" data-key="copy"></button>
         <button id="reply-btn" data-key="reply"></button>
     </div>
-    <input type="file" id="file-input" hidden>
 
     <script>
         const API = "https://dh7.adamdh7.org";
-        const UPLOAD_URL = "https://tfupload.tergenefocus.worker.dev/";
-        const MEDIA_DOMAIN = "url.adamdh7.org";
         let user = JSON.parse(localStorage.getItem('dh7_session')) || null;
         let activePeer = null;
         let chatInterval = null;
@@ -611,11 +586,6 @@
         }
         let shownTfids = new Set();
         let replyingTo = null;
-        let recorder = null;
-        let recordingInterval = null;
-        let recordingTimer = null;
-        let recordingChunks = [];
-        let recordingBar = null;
         const REPLY_START = '\u2063'; // Invisible separator for start of reply
         const REPLY_END = '\u2064'; // Invisible separator for end of reply
         const translations = {
@@ -821,7 +791,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ identifier: id, password: pass })
                 });
-                if (!res.ok) throw new Error('Failed to fetch');
+                if (!res.ok) throw new Error('Login failed');
                 const data = await res.json();
                 if(data.success) {
                     user = data.user;
@@ -1189,10 +1159,18 @@
                         div.appendChild(replyDiv);
                         const mainSpan = document.createElement('span');
                         mainSpan.className = 'main-message';
-                        renderText(mainSpan, main);
+                        mainSpan.innerText = main;
                         div.appendChild(mainSpan);
                     } else {
-                        renderText(div, text);
+                        let formattedId = text;
+                        if (/^\d+$/.test(text)) {
+                            formattedId = `TF-${text.padStart(6, '0')}`;
+                        }
+                        if (formattedId.startsWith('TF-') && formattedId.length === 9 || formattedId.endsWith('@dh7.tf')) {
+                            div.innerHTML = `<a onclick="openChatByIdentifier('${formattedId}')">${text}</a>`;
+                        } else {
+                            div.innerText = text;
+                        }
                     }
                     if (isMe) {
                         let read = m.read;
@@ -1220,31 +1198,6 @@
                 }
             } catch (e) {
                 console.error(e);
-            }
-        }
-
-        function renderText(parent, text) {
-            const trimmed = text.trim();
-            if (trimmed.startsWith('TF-') && trimmed.length === 9 || trimmed.endsWith('@dh7.tf')) {
-                parent.innerHTML = `<a onclick="openChatByIdentifier('${trimmed.replace(/'/g, "\\'")}')">${text}</a>`;
-            } else if (/^https?:\/\//i.test(trimmed)) {
-                if (trimmed.includes('url.adamdh7.org')) {
-                    const ext = trimmed.split('.').pop().toLowerCase();
-                    if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
-                        parent.innerHTML = `<img src="${trimmed}" alt="Image" class="max-w-full rounded-2xl cursor-pointer" onclick="openFullscreen('${trimmed}', 'image')">`;
-                    } else if (['mp4', 'webm'].includes(ext)) {
-                        parent.innerHTML = `<video src="${trimmed}" class="max-w-full rounded-2xl cursor-pointer" onclick="openFullscreen('${trimmed}', 'video')" controls></video>`;
-                    } else if (['ogg', 'mp3', 'wav'].includes(ext)) {
-                        parent.innerHTML = `<audio src="${trimmed}" controls class="w-full"></audio>`;
-                    } else {
-                        const name = trimmed.split('/').pop().split('-').slice(1).join('-');
-                        parent.innerHTML = `<a href="${trimmed}" target="_blank" class="text-blue-400 underline">${name}</a>`;
-                    }
-                } else {
-                    parent.innerHTML = `<a href="${trimmed}" target="_blank" class="text-blue-400 underline">${trimmed}</a>`;
-                }
-            } else {
-                parent.innerText = text;
             }
         }
 
@@ -1277,19 +1230,17 @@
             });
         }
 
-        async function sendMessage(customText = null) {
+        async function sendMessage() {
             const input = document.getElementById('msg-input');
-            let text = customText || input.value.trim();
+            let text = input.value.trim();
             if(!text || !activePeer) return;
             if (replyingTo) {
                 text = REPLY_START + replyingTo.id + REPLY_END + replyingTo.sender + REPLY_END + replyingTo.quoted + REPLY_END + '\n\n' + text;
                 replyingTo = null;
                 cancelReply();
             }
-            if (!customText) {
-                input.value = "";
-                input.style.height = 'auto';
-            }
+            input.value = "";
+            input.style.height = 'auto';
             try {
                 await fetch(`${API}/send`, { 
                     method: 'POST', 
@@ -1318,152 +1269,9 @@
             document.getElementById('reply-preview').classList.add('hidden');
         }
 
-        function handleInput(el) {
-            autoResize(el);
-            updateActionButton();
-        }
-
         function autoResize(el) {
             el.style.height = 'auto';
             el.style.height = el.scrollHeight + 'px';
-        }
-
-        function updateActionButton() {
-            const input = document.getElementById('msg-input');
-            const btn = document.getElementById('action-btn');
-            if (input.value.trim()) {
-                btn.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                        <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
-                    </svg>
-                `;
-                btn.onclick = () => sendMessage();
-            } else {
-                btn.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                        <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
-                        <path d="M5.25 9.75c0 .845.17 1.641.468 2.355a.75.75 0 01-.303 1.01l-1.5.75a.75.75 0 01-1.01-.303A11.97 11.97 0 013 12c0-1.905.445-3.69 1.225-5.25a.75.75 0 011.01-.303l1.5.75a.75.75 0 01.303 1.01A8.97 8.97 0 005.25 9.75zM18.75 9.75c0 .845-.17 1.641-.468 2.355a.75.75 0 00.303 1.01l1.5.75a.75.75 0 001.01-.303A11.97 11.97 0 0021 12c0-1.905-.445-3.69-1.225-5.25a.75.75 0 00-1.01-.303l-1.5.75a.75.75 0 00-.303 1.01c.298.714.468 1.51.468 2.355z" />
-                    </svg>
-                `;
-                btn.onclick = null;
-            }
-        }
-
-        async function startRecording() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                recorder = new MediaRecorder(stream);
-                recorder.ondataavailable = e => recordingChunks.push(e.data);
-                recorder.onstop = async () => {
-                    const blob = new Blob(recordingChunks, { type: 'audio/ogg' });
-                    recordingChunks = [];
-                    const filename = `${Date.now()}-voice.ogg`;
-                    const url = await uploadFile(blob, filename, 'audio/ogg');
-                    if (url) {
-                        sendMessage(url);
-                    }
-                    recorder = null;
-                };
-                recordingChunks = [];
-                recorder.start();
-                showRecordingBar();
-            } catch (e) {
-                console.error('Recording failed:', e);
-            }
-        }
-
-        function stopRecording() {
-            if (recorder) {
-                recorder.stop();
-            }
-            hideRecordingBar();
-        }
-
-        function cancelRecording() {
-            if (recorder) {
-                recorder.stop();
-                recorder = null;
-            }
-            recordingChunks = [];
-            hideRecordingBar();
-        }
-
-        function showRecordingBar() {
-            if (recordingBar) return;
-            recordingBar = document.createElement('div');
-            recordingBar.id = 'recording-bar';
-            const timer = document.createElement('span');
-            timer.id = 'record-timer';
-            timer.textContent = '0:00';
-            const cancelBtn = document.createElement('button');
-            cancelBtn.innerHTML = '&times;';
-            cancelBtn.onclick = cancelRecording;
-            recordingBar.appendChild(timer);
-            recordingBar.appendChild(cancelBtn);
-            const inputArea = document.querySelector('.input-area');
-            const replyPreview = document.getElementById('reply-preview');
-            if (replyPreview && !replyPreview.classList.contains('hidden')) {
-                replyPreview.insertAdjacentElement('afterend', recordingBar);
-            } else {
-                inputArea.insertAdjacentElement('beforebegin', recordingBar);
-            }
-            let seconds = 0;
-            recordingTimer = setInterval(() => {
-                seconds++;
-                timer.textContent = `0:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
-
-        function hideRecordingBar() {
-            if (recordingBar) {
-                recordingBar.remove();
-                recordingBar = null;
-            }
-            if (recordingTimer) {
-                clearInterval(recordingTimer);
-                recordingTimer = null;
-            }
-        }
-
-        async function uploadFile(file, filename, contentType) {
-            try {
-                const res = await fetch(`${UPLOAD_URL}${filename}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': contentType },
-                    body: file
-                });
-                if (!res.ok) throw new Error('Upload failed');
-                return await res.text();
-            } catch (e) {
-                console.error(e);
-                return null;
-            }
-        }
-
-        function openFullscreen(src, type) {
-            const overlay = document.createElement('div');
-            overlay.className = 'fixed inset-0 bg-black z-50 flex items-center justify-center';
-            let media;
-            if (type === 'image') {
-                media = document.createElement('img');
-                media.src = src;
-                media.className = 'max-w-full max-h-full';
-            } else if (type === 'video') {
-                media = document.createElement('video');
-                media.src = src;
-                media.className = 'max-w-full max-h-full';
-                media.onclick = () => media.paused ? media.play() : media.pause();
-            }
-            const close = document.createElement('button');
-            close.className = 'absolute top-4 right-4 text-white text-3xl';
-            close.innerHTML = '&times;';
-            close.onclick = () => overlay.remove();
-            overlay.appendChild(media);
-            overlay.appendChild(close);
-            document.body.appendChild(overlay);
-            overlay.onclick = (e) => {
-                if (e.target === overlay) overlay.remove();
-            };
         }
 
         function startApp() {
@@ -1473,35 +1281,6 @@
             document.getElementById('m-init').innerText = user.nom[0];
             handleRouting();
             setupNotifications();
-            setupInputEvents();
-        }
-
-        function setupInputEvents() {
-            updateActionButton();
-            const actionBtn = document.getElementById('action-btn');
-            addLongPressListeners(actionBtn, null, null); // Already has long press for voice
-            actionBtn.addEventListener('touchstart', (e) => {
-                if (!document.getElementById('msg-input').value.trim()) {
-                    startRecording();
-                }
-            });
-            actionBtn.addEventListener('touchend', (e) => {
-                if (!document.getElementById('msg-input').value.trim()) {
-                    stopRecording();
-                }
-            });
-            const fileBtn = document.getElementById('file-btn');
-            fileBtn.onclick = () => document.getElementById('file-input').click();
-            document.getElementById('file-input').onchange = async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const filename = `${Date.now()}-${file.name.replace(/ /g, '_')}`;
-                const url = await uploadFile(file, filename, file.type);
-                if (url) {
-                    sendMessage(url);
-                }
-                e.target.value = '';
-            };
         }
 
         async function setupNotifications() {
@@ -1677,7 +1456,7 @@
                 isLongPress = false;
                 longPressTimer = setTimeout(() => {
                     isLongPress = true;
-                    if (longPressCallback) longPressCallback(startX, startY);
+                    longPressCallback(startX, startY);
                 }, 500);
             };
 
@@ -1714,15 +1493,15 @@
         } else {
             navTo('scr-auth');
         }
-        let msgInput = document.getElementById('msg-input');
-        if (msgInput) {
-            msgInput.onkeypress = (e) => {
+        let input = document.getElementById('msg-input');
+        if (input) {
+            input.onkeypress = (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    const start = msgInput.selectionStart;
-                    msgInput.value = msgInput.value.substring(0, start) + '\n' + msgInput.value.substring(start);
-                    msgInput.selectionStart = msgInput.selectionEnd = start + 1;
-                    autoResize(msgInput);
+                    const start = input.selectionStart;
+                    input.value = input.value.substring(0, start) + '\n' + input.value.substring(start);
+                    input.selectionStart = input.selectionEnd = start + 1;
+                    autoResize(input);
                 }
             };
         }
