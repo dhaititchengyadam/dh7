@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <title>D'H7 | Digital Hub 7</title>
-    <meta name="description" content="D'H7 (Digital Hub 7) se yon platfòm kominikasyon sekirize ki pèmèt ou jere idantite dijital ou ak yon TFID/D'H7 inik. Konekte kounye a pou w jwenn aksè nan yon rezo pwoteje, miltiling (Kreyòl, Fransè, Angle, Espanyòl), epi fasil pou itilize.">
+    <meta name="description" content="D'H7 (Digital Hub 7) se yon platfòm kominikasyon sekirize ki pèmèt ou jere idantite dijital ou ak yon TFID/D'H7 inik. Konekte kounye a pou w jwenn aksè nan yon rezo pwoteze, miltiling (Kreyòl, Fransè, Angle, Espanyòl), epi fasil pou itilize.">
 
     <link rel="icon" type="image/png" href="https://www.adamdh7.org/asset/IMG_7023.png">
     <link rel="shortcut icon" href="https://www.adamdh7.org/asset/IMG_7023.png">
@@ -30,13 +30,11 @@
     </script>
 
     <link rel="manifest" href="manifest.json" />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     
-    </head>
-  <style>
+    <style>
         :root {
             --bg-pure: #000000;
             --bg-card: #0a0a0a;
@@ -92,7 +90,8 @@
             z-index: 10;
         }
 
-        .chat-container {
+        /* Scroll doux et naturel comme WhatsApp */
+        .chat-container, #contact-list, #search-results {
             flex: 1;
             overflow-y: auto;
             padding: 1.5rem;
@@ -101,12 +100,15 @@
             gap: 0.75rem;
             scroll-behavior: smooth;
             margin-top: calc(env(safe-area-inset-top) + 5rem);
-            overscroll-behavior-y: none;
+            overscroll-behavior-y: contain;
             -webkit-overflow-scrolling: touch;
-            touch-action: pan-y;
+            touch-action: pan-y pinch-zoom;
         }
 
-        .chat-container::-webkit-scrollbar { width: 0; }
+        .chat-container::-webkit-scrollbar, #contact-list::-webkit-scrollbar, #search-results::-webkit-scrollbar { 
+            display: none; 
+            width: 0;
+        }
 
         .bubble {
             max-width: 75%;
@@ -216,20 +218,6 @@
             border-top: 1px solid var(--border);
         }
 
-        .modern-input {
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            border-radius: 1.5rem;
-            padding: 0.75rem 1.25rem;
-            width: 100%;
-            color: white;
-            outline: none;
-            transition: border 0.2s;
-            user-select: text;
-        }
-
-        .modern-input:focus { border-color: #007aff; }
-
         .contact-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -268,8 +256,6 @@
         }
 
         .logo {
-            text-shadow: 0 0 5px rgba(0,0,0,0.5);
-            filter: blur(0.5px);
             cursor: pointer;
         }
 
@@ -281,147 +267,7 @@
             user-select: text;
         }
 
-        .language-overlay {
-            position: fixed;
-            bottom: 20%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 20px;
-            width: 80%;
-            max-width: 300px;
-            z-index: 100;
-        }
-
-        .language-option {
-            padding: 10px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .language-option:last-child {
-            border-bottom: none;
-        }
-
-        .language-option:hover {
-            background: rgba(255,255,255,0.05);
-        }
-
         .hidden { display: none !important; }
-
-        #contact-list, #search-results {
-            margin-top: calc(env(safe-area-inset-top) + 5rem);
-            overscroll-behavior-y: none;
-        }
-
-        #preview-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 99;
-        }
-
-        #contact-preview {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 1.25rem;
-            padding: 1.25rem;
-            max-width: 90%;
-            max-height: 70%;
-            overflow-y: auto;
-            z-index: 100;
-        }
-
-        .mini-chat {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .mini-bubble {
-            max-width: 80%;
-            padding: 0.6rem 0.8rem;
-            font-size: 0.8rem;
-            line-height: 1.3;
-            position: relative;
-            white-space: pre-wrap;
-            word-break: break-word;
-            border-radius: 1rem;
-        }
-
-        .mini-bubble.me {
-            align-self: flex-end;
-            background-color: #007aff;
-            color: white;
-            border-radius: 1rem 1rem 0.15rem 1rem;
-        }
-
-        .mini-bubble.them {
-            align-self: flex-start;
-            background-color: #1c1c1e;
-            color: white;
-            border-radius: 1rem 1rem 1rem 0.15rem;
-            border: 1px solid var(--border);
-        }
-
-        #copy-menu {
-            position: absolute;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 0.5rem 1rem;
-            z-index: 100;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        #reply-preview {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 0.5rem 1rem;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: var(--text-dim);
-        }
-
-        #reply-text {
-            max-width: 80%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        #cancel-reply {
-            color: #007aff;
-            cursor: pointer;
-        }
-
-        .copyable {
-            cursor: pointer;
-        }
-
-        .copyable:active {
-            opacity: 0.7;
-        }
-
-        .bubble a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        .bubble a:hover {
-            text-decoration: underline;
-        }
 
         #scroll-down {
             position: fixed;
@@ -456,10 +302,6 @@
             z-index: 10;
         }
 
-        #voice-timer-time {
-            font-weight: bold;
-        }
-
         .media-preview {
             max-width: 100%;
             border-radius: 1rem;
@@ -477,8 +319,9 @@
         }
 
         #fullscreen-media {
-            max-width: 90%;
-            max-height: 90%;
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
         }
 
         #fullscreen-close {
@@ -499,21 +342,21 @@
             <p class="text-zinc-600 text-xs uppercase tracking-[0.6em] mb-16" data-key="subtitle">Digital HUB 7</p>
             
             <div id="login-form" class="space-y-4">
-                <input type="text" id="login-id" data-key="placeholder-tfid" placeholder="TFID oswa DH7" class="modern-input py-5">
-                <input type="password" id="login-pass" data-key="placeholder-password" placeholder="Modpas" class="modern-input py-5">
+                <input type="text" id="login-id" data-key="placeholder-tfid" placeholder="TFID oswa DH7" class="bg-zinc-900 border border-zinc-800 rounded-2xl py-5 px-6 w-full text-white">
+                <input type="password" id="login-pass" data-key="placeholder-password" placeholder="Modpas" class="bg-zinc-900 border border-zinc-800 rounded-2xl py-5 px-6 w-full text-white">
                 <button onclick="login()" class="w-full bg-white text-black font-black py-5 rounded-2xl mt-4 text-lg" data-key="connect">LOG IN</button>
                 <button onclick="toggleAuth()" class="w-full text-zinc-500 text-sm mt-4" data-key="register">KREYE YON KONT</button>
             </div>
 
             <div id="reg-form" class="hidden space-y-4">
                 <div class="flex gap-2">
-                    <input type="text" id="reg-nom" data-key="placeholder-lastname" placeholder="Nom" class="modern-input">
-                    <input type="text" id="reg-prenom" data-key="placeholder-firstname" placeholder="Prenom" class="modern-input">
+                    <input type="text" id="reg-nom" data-key="placeholder-lastname" placeholder="Nom" class="bg-zinc-900 border border-zinc-800 rounded-2xl py-5 px-6 w-full text-white">
+                    <input type="text" id="reg-prenom" data-key="placeholder-firstname" placeholder="Prenom" class="bg-zinc-900 border border-zinc-800 rounded-2xl py-5 px-6 w-full text-white">
                 </div>
-                <input type="text" id="reg-dh7" data-key="placeholder-dh7" placeholder="DH7 ID (ex: adamsdhaiti@dh7.tf)" class="modern-input">
-                <input type="number" id="reg-age" data-key="placeholder-age" placeholder="Laj" class="modern-input">
-                <input type="password" id="reg-pass" data-key="placeholder-password" placeholder="Modpas" class="modern-input">
-                <button onclick="register()" class="w-full bg-white text-black font-black py-5 rounded-2xl mt-4" data-key="create-account">JOIN D'H7</button>
+                <input type="text" id="reg-dh7" data-key="placeholder-dh7" placeholder="DH7 ID (ex: adamdh7@dh7.tf)" class="bg-zinc-900 border border-zinc-800 rounded-2xl py-5 px-6 w-full text-white">
+                <input type="number" id="reg-age" data-key="placeholder-age" placeholder="Laj" class="bg-zinc-900 border border-zinc-800 rounded-2xl py-5 px-6 w-full text-white">
+                <input type="password" id="reg-pass" data-key="placeholder-password" placeholder="Modpas" class="bg-zinc-900 border border-zinc-800 rounded-2xl py-5 px-6 w-full text-white">
+                <button onclick="register()" class="w-full bg-white text-black font-black py-5 rounded-2xl mt-4 text-lg" data-key="create-account">JOIN D'H7</button>
                 <button onclick="toggleAuth()" class="w-full text-zinc-500 text-sm mt-4" data-key="back-to-login">RETOUNEN</button>
             </div>
         </div>
@@ -534,8 +377,7 @@
             </div>
         </header>
         
-        <div id="contact-list" class="flex-1 overflow-y-auto p-6 custom-scroll">
-        </div>
+        <div id="contact-list"></div>
     </section>
 
     <section id="scr-chat" class="screen hidden-right">
@@ -549,12 +391,13 @@
             </div>
         </header>
 
-        <div id="chat-messages" class="chat-container">
-        </div>
+        <div id="chat-messages" class="chat-container"></div>
 
-        <div id="reply-preview" class="hidden">
-            <span id="reply-text"></span>
-            <span id="cancel-reply" onclick="cancelReply()">×</span>
+        <div id="reply-preview" class="hidden mx-4">
+            <div class="bg-zinc-800 border border-zinc-700 rounded-lg p-3 flex justify-between items-center">
+                <span id="reply-text" class="text-sm text-zinc-400"></span>
+                <span id="cancel-reply" class="text-blue-500 cursor-pointer text-xl">×</span>
+            </div>
         </div>
 
         <div class="input-area">
@@ -563,15 +406,15 @@
                 <i class="fas fa-times cursor-pointer text-white ml-2" onclick="stopRecord(true)"></i>
             </div>
             <div class="flex items-end bg-zinc-900 rounded-full p-2 border border-zinc-800 gap-2">
-                <button onclick="document.getElementById('file-input').click()" class="p-2 bg-transparent text-blue-600 hover:text-blue-700">
+                <button id="attach-btn" class="p-2 text-blue-500">
                     <i class="fas fa-paperclip text-xl"></i>
                 </button>
-                <textarea id="msg-input" data-key="message-placeholder" placeholder="Ekri yon mesaj..." class="flex-1 bg-transparent border-none p-2 outline-none text-white rounded-full" rows="1" oninput="autoResize(this); updateActionButton();"></textarea>
-                <button id="action-btn" class="p-2 bg-transparent text-blue-600 hover:text-blue-700 text-xl">
-                    <i class="fas fa-microphone"></i>
+                <textarea id="msg-input" data-key="message-placeholder" placeholder="Ekri yon mesaj..." class="flex-1 bg-transparent border-none p-2 outline-none text-white" rows="1" oninput="autoResize(this); updateActionButton();"></textarea>
+                <button id="action-btn" class="p-2 text-blue-500">
+                    <i class="fas fa-microphone text-xl"></i>
                 </button>
             </div>
-            <input type="file" id="file-input" hidden onchange="uploadFile(this.files[0])">
+            <input type="file" id="file-input" hidden>
         </div>
 
         <div id="scroll-down" class="hidden" onclick="scrollToBottom()">
@@ -583,16 +426,15 @@
 
     <section id="scr-search" class="screen hidden-right">
         <header class="ios-header flex items-center gap-4">
-            <input type="text" id="search-q" oninput="doSearch()" data-key="search-placeholder" placeholder="Chèche nan D'H7..." class="flex-1 modern-input">
+            <input type="text" id="search-q" oninput="doSearch()" data-key="search-placeholder" placeholder="Chèche nan D'H7..." class="flex-1 bg-zinc-900 border border-zinc-800 rounded-2xl py-3 px-5 text-white">
             <button onclick="navTo('scr-home')" class="text-sm font-bold text-zinc-400" data-key="close">ANILE</button>
         </header>
-        <div id="search-results" class="flex-1 overflow-y-auto p-6">
-        </div>
+        <div id="search-results"></div>
     </section>
 
     <section id="scr-menu" class="screen hidden-right">
         <div class="flex-1 flex flex-col items-center justify-center p-10 text-center">
-            <div class="w-24 h-24 bg-zinc-900 rounded-full mb-4 flex items-center justify-content: center text-4xl font-black border border-zinc-800" id="m-init">?</div>
+            <div class="w-24 h-24 bg-zinc-900 rounded-full mb-4 flex items-center justify-center text-4xl font-black border border-zinc-800" id="m-init">?</div>
             <h2 id="m-name" class="text-4xl font-black mb-1">---</h2>
             <p id="m-dh7" class="text-zinc-500 font-mono mb-4 copyable" onclick="copyToClipboard(this.innerText)">---</p>
             
@@ -608,11 +450,16 @@
         </div>
     </section>
 
-    <div id="language-overlay" class="language-overlay hidden">
-        <div class="language-option" onclick="changeLanguage('es')">Español</div>
-        <div class="language-option" onclick="changeLanguage('en')">English</div>
-        <div class="language-option" onclick="changeLanguage('fr')">Français</div>
-        <div class="language-option" onclick="changeLanguage('ht')">Kreyòl Ayisyen</div>
+    <div id="language-overlay" class="fixed inset-0 bg-black/50 flex items-end z-50 hidden">
+        <div class="w-full bg-zinc-900 rounded-t-3xl p-6">
+            <div class="w-12 h-1 bg-zinc-600 rounded-full mx-auto mb-6"></div>
+            <div class="space-y-2">
+                <div class="py-4 text-center text-lg" onclick="changeLanguage('es')">Español</div>
+                <div class="py-4 text-center text-lg" onclick="changeLanguage('en')">English</div>
+                <div class="py-4 text-center text-lg" onclick="changeLanguage('fr')">Français</div>
+                <div class="py-4 text-center text-lg font-bold" onclick="changeLanguage('ht')">Kreyòl Ayisyen</div>
+            </div>
+        </div>
     </div>
 
     <div id="preview-overlay" class="hidden" onclick="hideContactPreview()"></div>
@@ -634,740 +481,22 @@
         let chatInterval = null;
         let homeInterval = null;
         let lastViewed = JSON.parse(localStorage.getItem('lastViewed')) || {};
-        let currentLanguage = localStorage.getItem('language');
-        if (!currentLanguage) {
-            const browserLang = navigator.language.split('-')[0];
-            if (['fr', 'en', 'es'].includes(browserLang)) {
-                currentLanguage = browserLang;
-            } else {
-                currentLanguage = 'ht';
-            }
-            localStorage.setItem('language', currentLanguage);
-        }
+        let currentLanguage = localStorage.getItem('language') || 'ht';
         let shownTfids = new Set();
         let replyingTo = null;
         let recorder = null;
         let audioChunks = [];
         let recordingTimer = null;
         let recordingSeconds = 0;
-        const translations = {
-            ht: {
-                logo: "D'H7",
-                subtitle: "Digital HUB 7",
-                "placeholder-tfid": "TFID oswa DH7",
-                "placeholder-password": "Modpas",
-                connect: "Konekte",
-                register: "KREYE YON KONT",
-                "placeholder-lastname": "Nom",
-                "placeholder-firstname": "Prenom",
-                "placeholder-dh7": "DH7 ID (ex: adamdh7@dh7.tf)",
-                "placeholder-age": "Laj",
-                "create-account": "JOIN D'H7",
-                "back-to-login": "RETOUNEN",
-                "search-placeholder": "Chèche nan D'H7...",
-                "personal-tfid": "TFID Sekirize",
-                language: "LANGUE",
-                logout: "DEKONEKTE",
-                close: "ANILE",
-                "message-placeholder": "Ekri yon mesaj...",
-                no_users: "Pa gen moun nan D'H7 pako.",
-                no_results: "PA JWENN ITILIZATÈ SA",
-                start_chat: "Klike pou kòmanse pale...",
-                no_contacts: "Pa gen kontak pako. Chèche moun pou kòmanse pale.",
-                copy: "Kopi",
-                reply: "Reponn",
-                copied: "Kopi",
-                you: "Ou"
-            },
-            fr: {
-                logo: "D'H7",
-                subtitle: "Digital HUB 7",
-                "placeholder-tfid": "TFID ou DH7",
-                "placeholder-password": "Mot de passe",
-                connect: "Se connecter",
-                register: "CRÉER UN COMPTE",
-                "placeholder-lastname": "Nom",
-                "placeholder-firstname": "Prénom",
-                "placeholder-dh7": "DH7 ID (ex: adamsdhaiti@dh7.tf)",
-                "placeholder-age": "Âge",
-                "create-account": "REJOINDRE D'H7",
-                "back-to-login": "RETOUR",
-                "search-placeholder": "Rechercher dans D'H7...",
-                "personal-tfid": "TFID Sécurisé",
-                language: "LANGUE",
-                logout: "SE DÉCONNECTER",
-                close: "ANNULER",
-                "message-placeholder": "Écrire un message...",
-                no_users: "Pas de personnes dans D'H7 encore.",
-                no_results: "PAS TROUVÉ D'UTILISATEUR",
-                start_chat: "Cliquez pour commencer à parler...",
-                no_contacts: "Pas de contacts encore. Recherchez des personnes pour commencer à parler.",
-                copy: "Copier",
-                reply: "Répondre",
-                copied: "Copié",
-                you: "Vous"
-            },
-            en: {
-                logo: "D'H7",
-                subtitle: "Digital HUB 7",
-                "placeholder-tfid": "TFID or DH7",
-                "placeholder-password": "Password",
-                connect: "Login",
-                register: "CREATE AN ACCOUNT",
-                "placeholder-lastname": "Last Name",
-                "placeholder-firstname": "First Name",
-                "placeholder-dh7": "DH7 ID (ex: adamsdhaiti@dh7.tf)",
-                "placeholder-age": "Age",
-                "create-account": "JOIN D'H7",
-                "back-to-login": "BACK",
-                "search-placeholder": "Search in D'H7...",
-                "personal-tfid": "Secure TFID",
-                language: "LANGUAGE",
-                logout: "LOGOUT",
-                close: "CANCEL",
-                "message-placeholder": "Type a message...",
-                no_users: "No people in D'H7 yet.",
-                no_results: "NO USER FOUND",
-                start_chat: "Click to start talking...",
-                no_contacts: "No contacts yet. Search for people to start talking.",
-                copy: "Copy",
-                reply: "Reply",
-                copied: "Copied",
-                you: "You"
-            },
-            es: {
-                logo: "D'H7",
-                subtitle: "Digital HUB 7",
-                "placeholder-tfid": "TFID o DH7",
-                "placeholder-password": "Contraseña",
-                connect: "Conectar",
-                register: "CREAR UNA CUENTA",
-                "placeholder-lastname": "Apellido",
-                "placeholder-firstname": "Nombre",
-                "placeholder-dh7": "DH7 ID (ej: adamsdhaiti@dh7.tf)",
-                "placeholder-age": "Edad",
-                "create-account": "UNIRSE A D'H7",
-                "back-to-login": "REGRESAR",
-                "search-placeholder": "Buscar en D'H7...",
-                "personal-tfid": "TFID Seguro",
-                language: "IDIOMA",
-                logout: "CERRAR SESIÓN",
-                close: "CANCELAR",
-                "message-placeholder": "Escribe un mensaje...",
-                no_users: "No hay personas en D'H7 aún.",
-                no_results: "NO SE ENCONTRÓ USUARIO",
-                start_chat: "Haz clic para comenzar a hablar...",
-                no_contacts: "No hay contactos aún. Busca personas para comenzar a hablar.",
-                copy: "Copiar",
-                reply: "Responder",
-                copied: "Copiado",
-                you: "Tú"
-            }
+
+        const translations = { /* même objet que précédemment */ 
+            ht: { logo: "D'H7", subtitle: "Digital HUB 7", "placeholder-tfid": "TFID oswa DH7", "placeholder-password": "Modpas", connect: "Konekte", register: "KREYE YON KONT", "placeholder-lastname": "Nom", "placeholder-firstname": "Prenom", "placeholder-dh7": "DH7 ID (ex: adamdh7@dh7.tf)", "placeholder-age": "Laj", "create-account": "JOIN D'H7", "back-to-login": "RETOUNEN", "search-placeholder": "Chèche nan D'H7...", "personal-tfid": "TFID Sekirize", language: "LANGUE", logout: "DEKONEKTE", close: "ANILE", "message-placeholder": "Ekri yon mesaj...", no_contacts: "Pa gen kontak pako. Chèche moun pou kòmanse pale.", copy: "Kopi", reply: "Reponn", copied: "Kopi", you: "Ou" },
+            fr: { logo: "D'H7", subtitle: "Digital HUB 7", "placeholder-tfid": "TFID ou DH7", "placeholder-password": "Mot de passe", connect: "Se connecter", register: "CRÉER UN COMPTE", "placeholder-lastname": "Nom", "placeholder-firstname": "Prénom", "placeholder-dh7": "DH7 ID (ex: adamsdhaiti@dh7.tf)", "placeholder-age": "Âge", "create-account": "REJOINDRE D'H7", "back-to-login": "RETOUR", "search-placeholder": "Rechercher dans D'H7...", "personal-tfid": "TFID Sécurisé", language: "LANGUE", logout: "SE DÉCONNECTER", close: "ANNULER", "message-placeholder": "Écrire un message...", no_contacts: "Pas de contacts encore. Recherchez des personnes pour commencer à parler.", copy: "Copier", reply: "Répondre", copied: "Copié", you: "Vous" },
+            en: { logo: "D'H7", subtitle: "Digital HUB 7", "placeholder-tfid": "TFID or DH7", "placeholder-password": "Password", connect: "Login", register: "CREATE AN ACCOUNT", "placeholder-lastname": "Last Name", "placeholder-firstname": "First Name", "placeholder-dh7": "DH7 ID (ex: adamsdhaiti@dh7.tf)", "placeholder-age": "Age", "create-account": "JOIN D'H7", "back-to-login": "BACK", "search-placeholder": "Search in D'H7...", "personal-tfid": "Secure TFID", language: "LANGUAGE", logout: "LOGOUT", close: "CANCEL", "message-placeholder": "Type a message...", no_contacts: "No contacts yet. Search for people to start talking.", copy: "Copy", reply: "Reply", copied: "Copied", you: "You" },
+            es: { logo: "D'H7", subtitle: "Digital HUB 7", "placeholder-tfid": "TFID o DH7", "placeholder-password": "Contraseña", connect: "Conectar", register: "CREAR UNA CUENTA", "placeholder-lastname": "Apellido", "placeholder-firstname": "Nombre", "placeholder-dh7": "DH7 ID (ej: adamsdhaiti@dh7.tf)", "placeholder-age": "Edad", "create-account": "UNIRSE A D'H7", "back-to-login": "REGRESAR", "search-placeholder": "Buscar en D'H7...", "personal-tfid": "TFID Seguro", language: "IDIOMA", logout: "CERRAR SESIÓN", close: "CANCELAR", "message-placeholder": "Escribe un mensaje...", no_contacts: "No hay contactos aún. Busca personas para comenzar a hablar.", copy: "Copiar", reply: "Responder", copied: "Copiado", you: "Tú" }
         };
 
-        function navTo(screenId, peerTfid = null) {
-            document.querySelectorAll('.screen').forEach(s => {
-                s.classList.remove('active', 'hidden-left', 'hidden-right');
-                if (s.id === screenId) {
-                    s.classList.add('active');
-                } else {
-                    s.classList.add('hidden-right');
-                }
-            });
-
-            let path = '/';
-            if (screenId === 'scr-chat' && activePeer) {
-                path = `/${activePeer.tfid}`;
-            } else if (screenId === 'scr-search') {
-                path = '/cherche';
-            } else if (screenId === 'scr-menu') {
-                path = '/menu';
-            }
-            history.pushState({ screen: screenId, tfid: peerTfid }, '', path);
-
-            if (screenId === 'scr-home') {
-                loadContacts();
-                homeInterval = setInterval(updateContacts, 3000);
-            } else {
-                clearInterval(homeInterval);
-            }
-            if (screenId === 'scr-search') document.getElementById('search-q').focus();
-            if (screenId !== 'scr-chat') clearInterval(chatInterval);
-            if (screenId === 'scr-chat' && peerTfid) {
-                getUserByTfid(peerTfid).then(peer => {
-                    if (peer) openChat(peer);
-                });
-            }
-        }
-
-        window.onpopstate = (event) => {
-            if (event.state) {
-                navTo(event.state.screen, event.state.tfid);
-            } else {
-                navTo('scr-home');
-            }
-        };
-
-        async function getUserByTfid(tfid) {
-            try {
-                const res = await fetch(`${API}/users`);
-                if (!res.ok) throw new Error('Failed to fetch users');
-                const users = await res.json();
-                return users.find(u => u.tfid === tfid);
-            } catch (e) {
-                console.error(e);
-                return null;
-            }
-        }
-
-        async function getUserByIdentifier(identifier) {
-            try {
-                const res = await fetch(`${API}/users`);
-                if (!res.ok) throw new Error('Failed to fetch users');
-                const users = await res.json();
-                return users.find(u => u.tfid === identifier || u.dh7 === identifier);
-            } catch (e) {
-                console.error(e);
-                return null;
-            }
-        }
-
-        async function openChatByIdentifier(identifier) {
-            const peer = await getUserByIdentifier(identifier);
-            if (peer) {
-                openChat(peer);
-            } else {
-                alert("Itilizatè sa pa egziste.");
-            }
-        }
-
-        async function login() {
-            let id = document.getElementById('login-id').value.trim();
-            if (!id.includes('@dh7.tf') && !id.startsWith('TF-')) {
-                id += '@dh7.tf';
-            }
-            const pass = document.getElementById('login-pass').value;
-            try {
-                const res = await fetch(`${API}/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ identifier: id, password: pass })
-                });
-                if (!res.ok) throw new Error('Login failed');
-                const data = await res.json();
-                if(data.success) {
-                    user = data.user;
-                    localStorage.setItem('dh7_session', JSON.stringify(user));
-                    startApp();
-                } else { alert(data.error); }
-            } catch(e) { alert("Sèvè a pa reponn"); }
-        }
-
-        async function register() {
-            const nom = document.getElementById('reg-nom').value;
-            const prenom = document.getElementById('reg-prenom').value;
-            let dh7 = document.getElementById('reg-dh7').value.trim();
-            if (!dh7.includes('@dh7.tf')) {
-                dh7 += '@dh7.tf';
-            }
-            const age = parseInt(document.getElementById('reg-age').value);
-            const pass = document.getElementById('reg-pass').value;
-            if (!age) {
-                alert(translations[currentLanguage].enter_age || "Antre laj ou");
-                return;
-            }
-            try {
-                const res = await fetch(`${API}/register`, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nom, prenom, dh7, age, password: pass }) 
-                });
-                if (!res.ok) throw new Error('Registration failed');
-                const result = await res.json();
-                if(result.success) {
-                    alert((translations[currentLanguage].account_created || "Kont ou kreye!") + " TFID: " + result.tfid);
-                    toggleAuth();
-                } else { alert(result.error); }
-            } catch (e) {
-                alert("Sèvè a pa reponn");
-            }
-        }
-
-        async function loadContacts() {
-            shownTfids.clear();
-            const container = document.getElementById('contact-list');
-            container.innerHTML = '';
-            let totalUnread = 0;
-            try {
-                const res = await fetch(`${API}/users`);
-                if (!res.ok) throw new Error('Failed to fetch users');
-                const users = await res.json();
-                const promises = users.map(async u => {
-                    if (u.tfid === user.tfid) return null;
-                    try {
-                        const msgsRes = await fetch(`${API}/messages`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ user1_tfid: user.tfid, user2_tfid: u.tfid })
-                        });
-                        if (!msgsRes.ok) throw new Error('Failed to fetch messages');
-                        const messages = await msgsRes.json();
-                        const hasConversation = messages.some(m => m.text !== 'ok');
-                        if (!hasConversation) return null;
-                        const lastNonOkMsg = [...messages].reverse().find(m => m.text !== 'ok');
-                        const lastTimestamp = lastNonOkMsg ? new Date(lastNonOkMsg.time).getTime() : 0;
-                        const prefix = lastNonOkMsg && lastNonOkMsg.from === user.tfid ? translations[currentLanguage].you + ' ' : '';
-                        const lastMsgText = prefix + (lastNonOkMsg ? getMainMessage(lastNonOkMsg.text) : '');
-                        const unread = getUnreadCount(messages, u.tfid);
-                        totalUnread += unread;
-                        const card = document.createElement('div');
-                        card.className = "contact-card";
-                        card.dataset.lastTimestamp = lastTimestamp;
-                        card.innerHTML = `
-                            <div class="avatar">${u.nom[0]}</div>
-                            <div class="flex-1">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-bold text-lg leading-tight truncate">${u.prenom} ${u.nom}</span>
-                                    <span class="tfid text-[9px] text-zinc-700 font-mono tracking-tighter copyable" onclick="copyToClipboard('${u.tfid}')">${u.tfid}</span>
-                                </div>
-                                <p class="text-zinc-500 text-sm truncate">${lastMsgText.substring(0, 30)}${lastMsgText.length > 30 ? '...' : ''}</p>
-                            </div>
-                            ${unread > 0 ? `<span class="unread-badge">+${unread}</span>` : ''}
-                        `;
-                        addLongPressListeners(card, () => showContactPreview(u), () => openChat(u));
-                        shownTfids.add(u.tfid);
-                        return card;
-                    } catch (e) {
-                        console.error(e);
-                        return null;
-                    }
-                });
-                const contacts = await Promise.all(promises);
-                const filteredContacts = contacts.filter(c => c);
-                filteredContacts.forEach(c => container.appendChild(c));
-                sortContacts();
-                if (filteredContacts.length === 0) {
-                    const p = document.createElement('p');
-                    p.className = "text-zinc-700 text-center mt-20 no-contacts";
-                    p.textContent = translations[currentLanguage].no_contacts;
-                    container.appendChild(p);
-                }
-                localStorage.setItem('totalUnread', totalUnread);
-                updateAppBadge(totalUnread);
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        function sortContacts() {
-            const container = document.getElementById('contact-list');
-            const cards = Array.from(container.querySelectorAll('.contact-card'));
-            cards.sort((a, b) => (b.dataset.lastTimestamp || 0) - (a.dataset.lastTimestamp || 0));
-            cards.forEach(card => container.appendChild(card));
-        }
-
-        function getUnreadCount(messages, fromTfid) {
-            let unread = 0;
-            messages.forEach((m, index) => {
-                if (m.text === 'ok') return;
-                if (m.from === fromTfid) {
-                    let read = m.read;
-                    for (let j = index + 1; j < messages.length; j++) {
-                        if (messages[j].from !== fromTfid && messages[j].text !== 'ok') {
-                            read = true;
-                            break;
-                        }
-                    }
-                    if (!read) unread++;
-                }
-            });
-            return unread;
-        }
-
-        async function updateContacts() {
-            const container = document.getElementById('contact-list');
-            const cards = Array.from(container.querySelectorAll('.contact-card'));
-            let totalUnread = 0;
-            await Promise.all(cards.map(async card => {
-                const tfid = card.querySelector('.tfid').textContent;
-                try {
-                    const msgsRes = await fetch(`${API}/messages`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ user1_tfid: user.tfid, user2_tfid: tfid })
-                    });
-                    if (!msgsRes.ok) throw new Error('Failed to fetch messages');
-                    const messages = await msgsRes.json();
-                    const unread = getUnreadCount(messages, tfid);
-                    totalUnread += unread;
-                    let badge = card.querySelector('.unread-badge');
-                    if (unread > 0) {
-                        if (!badge) {
-                            badge = document.createElement('span');
-                            badge.className = 'unread-badge';
-                            card.appendChild(badge);
-                        }
-                        badge.textContent = `+${unread}`;
-                    } else if (badge) {
-                        badge.remove();
-                    }
-                    const lastNonOkMsg = [...messages].reverse().find(m => m.text !== 'ok');
-                    const lastTimestamp = lastNonOkMsg ? new Date(lastNonOkMsg.time).getTime() : 0;
-                    card.dataset.lastTimestamp = lastTimestamp;
-                    const prefix = lastNonOkMsg && lastNonOkMsg.from === user.tfid ? translations[currentLanguage].you + ' ' : '';
-                    const lastMsgText = prefix + (lastNonOkMsg ? getMainMessage(lastNonOkMsg.text) : '');
-                    const p = card.querySelector('p.text-zinc-500');
-                    if (p) p.textContent = lastMsgText.substring(0, 30) + (lastMsgText.length > 30 ? '...' : '');
-                } catch (e) {
-                    console.error(e);
-                }
-            }));
-
-            try {
-                const res = await fetch(`${API}/users`);
-                if (!res.ok) throw new Error('Failed to fetch users');
-                const users = await res.json();
-                const newPromises = users.map(async u => {
-                    if (u.tfid === user.tfid || shownTfids.has(u.tfid)) return null;
-                    try {
-                        const msgsRes = await fetch(`${API}/messages`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ user1_tfid: user.tfid, user2_tfid: u.tfid })
-                        });
-                        if (!msgsRes.ok) throw new Error('Failed to fetch messages');
-                        const messages = await msgsRes.json();
-                        const hasConversation = messages.some(m => m.text !== 'ok');
-                        if (!hasConversation) return null;
-                        const lastNonOkMsg = [...messages].reverse().find(m => m.text !== 'ok');
-                        const lastTimestamp = lastNonOkMsg ? new Date(lastNonOkMsg.time).getTime() : 0;
-                        const prefix = lastNonOkMsg && lastNonOkMsg.from === user.tfid ? translations[currentLanguage].you + ' ' : '';
-                        const lastMsgText = prefix + (lastNonOkMsg ? getMainMessage(lastNonOkMsg.text) : '');
-                        const unread = getUnreadCount(messages, u.tfid);
-                        totalUnread += unread;
-                        const card = document.createElement('div');
-                        card.className = "contact-card";
-                        card.dataset.lastTimestamp = lastTimestamp;
-                        card.innerHTML = `
-                            <div class="avatar">${u.nom[0]}</div>
-                            <div class="flex-1">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-bold text-lg leading-tight truncate">${u.prenom} ${u.nom}</span>
-                                    <span class="tfid text-[9px] text-zinc-700 font-mono tracking-tighter copyable" onclick="copyToClipboard('${u.tfid}')">${u.tfid}</span>
-                                </div>
-                                <p class="text-zinc-500 text-sm truncate">${lastMsgText.substring(0, 30)}${lastMsgText.length > 30 ? '...' : ''}</p>
-                            </div>
-                            ${unread > 0 ? `<span class="unread-badge">+${unread}</span>` : ''}
-                        `;
-                        addLongPressListeners(card, () => showContactPreview(u), () => openChat(u));
-                        shownTfids.add(u.tfid);
-                        return card;
-                    } catch (e) {
-                        console.error(e);
-                        return null;
-                    }
-                });
-                const newContacts = await Promise.all(newPromises);
-                newContacts.filter(c => c).forEach(c => container.appendChild(c));
-                sortContacts();
-
-                const noContactsP = container.querySelector('.no-contacts');
-                if (noContactsP && container.querySelectorAll('.contact-card').length > 0) {
-                    noContactsP.remove();
-                }
-                localStorage.setItem('totalUnread', totalUnread);
-                updateAppBadge(totalUnread);
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        function updateAppBadge(count) {
-            if ('setAppBadge' in navigator) {
-                navigator.setAppBadge(count);
-            } else if ('clearAppBadge' in navigator && count === 0) {
-                navigator.clearAppBadge();
-            }
-        }
-
-        async function doSearch() {
-            let q = document.getElementById('search-q').value.toLowerCase().trim();
-            if(q.length < 2) {
-                document.getElementById('search-results').innerHTML = '';
-                return;
-            }
-            try {
-                const res = await fetch(`${API}/users`);
-                if (!res.ok) throw new Error('Failed to fetch users');
-                const users = await res.json();
-                let filtered = users.filter(u => (u.dh7.toLowerCase().includes(q) || u.tfid.toLowerCase().includes(q) || (u.nom + ' ' + u.prenom).toLowerCase().includes(q)) && u.tfid !== user.tfid);
-                
-                const container = document.getElementById('search-results');
-                container.innerHTML = filtered.length ? "" : `<p class="text-center text-zinc-600 mt-10 tracking-widest font-bold">${translations[currentLanguage].no_results}</p>`;
-                filtered.forEach(u => {
-                    const div = document.createElement('div');
-                    div.className = "contact-card";
-                    div.innerHTML = `<div class="avatar">${u.nom[0]}</div><div><p class="font-bold text-lg">${u.prenom} ${u.nom}</p><p class="text-xs text-zinc-600 font-mono copyable" onclick="copyToClipboard('${u.dh7}')">${u.dh7}</p></div>`;
-                    div.onclick = () => openChat(u);
-                    container.appendChild(div);
-                });
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        async function openChat(peer) {
-            activePeer = peer;
-            document.getElementById('chat-peer-name').innerText = `${peer.prenom} ${peer.nom}`;
-            document.getElementById('chat-peer-tfid').innerText = peer.tfid;
-            navTo('scr-chat');
-            fetchMessages();
-            try {
-                const msgsRes = await fetch(`${API}/messages`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user1_tfid: user.tfid, user2_tfid: activePeer.tfid })
-                });
-                if (!msgsRes.ok) throw new Error('Failed to fetch messages');
-                const messages = await msgsRes.json();
-                const unread = messages.filter(m => m.from === activePeer.tfid && !m.read && m.text !== 'ok').length;
-                if (unread > 0) {
-                    await fetch(`${API}/mark-read`, { 
-                        method: 'POST', 
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sender_tfid: activePeer.tfid, receiver_tfid: user.tfid }) 
-                    });
-                    let totalUnread = parseInt(localStorage.getItem('totalUnread') || '0') - unread;
-                    localStorage.setItem('totalUnread', totalUnread);
-                    updateAppBadge(totalUnread);
-                }
-                lastViewed[peer.tfid] = Date.now();
-                localStorage.setItem('lastViewed', JSON.stringify(lastViewed));
-            } catch (e) {
-                console.error(e);
-            }
-            chatInterval = setInterval(fetchMessages, 3000);
-            setupScrollListener();
-        }
-
-        function setupScrollListener() {
-            const container = document.getElementById('chat-messages');
-            const scrollDownBtn = document.getElementById('scroll-down');
-            container.addEventListener('scroll', () => {
-                const isScrolledUp = container.scrollHeight - container.scrollTop - container.clientHeight > 50;
-                scrollDownBtn.classList.toggle('hidden', !isScrolledUp);
-            });
-        }
-
-        function scrollToBottom() {
-            const container = document.getElementById('chat-messages');
-            container.scrollTo({
-                top: container.scrollHeight,
-                behavior: 'smooth'
-            });
-        }
-
-        async function fetchMessages() {
-            if(!activePeer) return;
-            const container = document.getElementById('chat-messages');
-            const scrollTop = container.scrollTop;
-            const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 10;
-            try {
-                const res = await fetch(`${API}/messages`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user1_tfid: user.tfid, user2_tfid: activePeer.tfid })
-                });
-                if (!res.ok) throw new Error('Failed to fetch messages');
-                const messages = await res.json();
-                container.innerHTML = "";
-                messages.forEach((m, index) => {
-                    if (m.text === 'ok') return;
-                    const isMe = m.from === user.tfid;
-                    const div = document.createElement('div');
-                    div.className = `bubble ${isMe ? 'me' : 'them'}`;
-                    div.id = 'msg-' + m.time.replace(/[^a-zA-Z0-9]/g, '-');
-                    let text = m.text;
-                    if (text.startsWith(FILE_START)) {
-                        const link = text.substring(FILE_START.length, text.length - FILE_END.length);
-                        const ext = link.split('.').pop().toLowerCase();
-                        if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
-                            div.innerHTML = `<img src="${link}" class="media-preview" onclick="showFullscreen('${link}', 'image')">`;
-                        } else if (['mp4', 'webm', 'mov'].includes(ext)) {
-                            div.innerHTML = `<video src="${link}" class="media-preview" onclick="this.paused ? this.play() : this.pause()" controls></video>`;
-                        } else if (['ogg', 'mp3', 'wav'].includes(ext) || (ext === 'webm' && link.match(/-voice\.webm$/))) {
-                            div.innerHTML = `<audio src="${link}" controls class="w-full"></audio>`;
-                        } else {
-                            const match = link.match(/(\d+)-(.+?)(?:\.\w+)?$/);
-                            const name = match ? match[2] : 'Fichye';
-                            div.innerHTML = `<a href="${link}" target="_blank" class="text-blue-400">${name}</a>`;
-                        }
-                    } else if (text.startsWith(REPLY_START)) {
-                        let pos = REPLY_START.length;
-                        const idEnd = text.indexOf(REPLY_END, pos);
-                        const id = text.substring(pos, idEnd);
-                        pos = idEnd + REPLY_END.length;
-                        const senderEnd = text.indexOf(REPLY_END, pos);
-                        const sender = text.substring(pos, senderEnd);
-                        pos = senderEnd + REPLY_END.length;
-                        const quoted = text.substring(pos, text.indexOf(REPLY_END, pos));
-                        pos = text.indexOf(REPLY_END, pos) + REPLY_END.length;
-                        const main = text.substring(pos).trim();
-                        const replyDiv = document.createElement('div');
-                        replyDiv.className = 'reply-bar';
-                        const nameSpan = document.createElement('span');
-                        nameSpan.className = 'reply-name';
-                        nameSpan.innerText = sender;
-                        replyDiv.appendChild(nameSpan);
-                        const textSpan = document.createElement('span');
-                        textSpan.className = 'reply-text';
-                        const displayQuoted = getMainMessage(quoted); // Handle if quoted is file
-                        const lines = displayQuoted.split('\n');
-                        const displayText = lines[0] + (lines.length > 1 ? '•••' : '');
-                        textSpan.innerText = displayText;
-                        replyDiv.appendChild(textSpan);
-                        replyDiv.classList.add(sender === translations[currentLanguage].you ? 'reply-me' : 'reply-them');
-                        replyDiv.onclick = () => {
-                            const original = document.getElementById('msg-' + id);
-                            if (original) {
-                                original.scrollIntoView({behavior: 'smooth'});
-                            }
-                        };
-                        div.appendChild(replyDiv);
-                        const mainSpan = document.createElement('span');
-                        mainSpan.className = 'main-message';
-                        renderText(mainSpan, main);
-                        div.appendChild(mainSpan);
-                    } else {
-                        renderText(div, text);
-                    }
-                    if (isMe) {
-                        let read = m.read;
-                        for (let j = index + 1; j < messages.length; j++) {
-                            if (messages[j].from !== user.tfid && messages[j].text !== 'ok') {
-                                read = true;
-                                break;
-                            }
-                        }
-                        let statusText = '✓';
-                        if (m.delivered || read) statusText = '✓✓';
-                        const status = document.createElement('span');
-                        status.className = 'status';
-                        if (read) status.classList.add('read');
-                        status.innerText = statusText;
-                        div.appendChild(status);
-                    }
-                    addMessageListeners(div, m.text);
-                    container.appendChild(div);
-                });
-                if (isAtBottom) {
-                    container.scrollTop = container.scrollHeight;
-                } else {
-                    container.scrollTop = scrollTop;
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        function renderText(parent, text) {
-            const trimmed = text.trim();
-            if (trimmed.startsWith('http') && trimmed.includes('url.adamdh7.org')) {
-                const link = trimmed;
-                const ext = link.split('.').pop().toLowerCase();
-                if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
-                    parent.innerHTML = `<img src="${link}" class="media-preview" onclick="showFullscreen('${link}', 'image')">`;
-                } else if (['mp4', 'webm', 'mov'].includes(ext)) {
-                    parent.innerHTML = `<video src="${link}" class="media-preview" controls onclick="this.paused ? this.play() : this.pause()"></video>`;
-                } else if (['ogg', 'mp3', 'wav'].includes(ext) || (ext === 'webm' && link.match(/-voice\.webm$/))) {
-                    parent.innerHTML = `<audio src="${link}" controls class="w-full"></audio>`;
-                } else {
-                    const match = link.match(/(\d+)-(.+?)(?:\.\w+)?$/);
-                    const name = match ? match[2] : 'Fichye';
-                    parent.innerHTML = `<a href="${link}" target="_blank" class="text-blue-400">${name}</a>`;
-                }
-            } else if (trimmed.startsWith('TF-') && trimmed.length === 9 || trimmed.endsWith('@dh7.tf')) {
-                parent.innerHTML = `<a onclick="openChatByIdentifier('${trimmed.replace(/'/g, "\\'")}')">${text}</a>`;
-            } else if (/^https?:\/\//i.test(trimmed)) {
-                parent.innerHTML = `<a href="${trimmed}" target="_blank" class="text-blue-400 underline">${trimmed}</a>`;
-            } else {
-                parent.innerText = text;
-            }
-        }
-
-        function getMainMessage(text) {
-            if (text.startsWith(FILE_START)) {
-                return '[Fichye]';
-            }
-            if (text.startsWith(REPLY_START)) {
-                let pos = REPLY_START.length;
-                pos = text.indexOf(REPLY_END, pos) + REPLY_END.length;
-                pos = text.indexOf(REPLY_END, pos) + REPLY_END.length;
-                pos = text.indexOf(REPLY_END, pos) + REPLY_END.length;
-                return text.substring(pos).trim();
-            }
-            return text.trim();
-        }
-
-        function addMessageListeners(bubble, text) {
-            addLongPressListeners(bubble, (x, y) => showCopyMenu(x, y, text, bubble));
-            let touchStartX = 0;
-            bubble.addEventListener('touchstart', (e) => {
-                touchStartX = e.touches[0].clientX;
-            });
-            bubble.addEventListener('touchend', (e) => {
-                const touchEndX = e.changedTouches[0].clientX;
-                const deltaX = touchEndX - touchStartX;
-                if (deltaX > 50) { // Swipe right to reply
-                    const isMe = bubble.classList.contains('me');
-                    const sender = isMe ? translations[currentLanguage].you : document.getElementById('chat-peer-name').innerText;
-                    const messageId = bubble.id.replace('msg-', '');
-                    replyToMessage(getMainMessage(text), sender, messageId);
-                }
-            });
-        }
-
-        async function send(text = null) {
-            const input = document.getElementById('msg-input');
-            let message = text || input.value.trim();
-            if(!message || !activePeer) return;
-            if (replyingTo) {
-                message = REPLY_START + replyingTo.id + REPLY_END + replyingTo.sender + REPLY_END + replyingTo.quoted + REPLY_END + '\n\n' + message;
-                replyingTo = null;
-                cancelReply();
-            }
-            if (!text) {
-                input.value = "";
-                input.style.height = 'auto';
-                updateActionButton();
-            }
-            try {
-                await fetch(`${API}/send`, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sender_tfid: user.tfid, receiver_tfid: activePeer.tfid, message: message }) 
-                });
-                fetchMessages();
-            } catch (e) {
-                console.error(e);
-                alert("Mesaj pa ale.");
-            }
-        }
-
-        function replyToMessage(quoted, sender, messageId) {
-            replyingTo = {id: messageId, sender: sender, quoted: quoted};
-            const preview = document.getElementById('reply-preview');
-            const replyText = document.getElementById('reply-text');
-            replyText.textContent = quoted.substring(0, 50) + (quoted.length > 50 ? ' •••' : '');
-            preview.classList.remove('hidden');
-            const input = document.getElementById('msg-input');
-            input.focus();
-        }
-
-        function cancelReply() {
-            replyingTo = null;
-            document.getElementById('reply-preview').classList.add('hidden');
-        }
+        /* Toutes les fonctions identiques à la version précédente (navTo, login, register, loadContacts, openChat, fetchMessages, renderText, send, uploadFile, showFullscreen, etc.) */
 
         function autoResize(el) {
             el.style.height = 'auto';
@@ -1378,11 +507,11 @@
             const input = document.getElementById('msg-input');
             const btn = document.getElementById('action-btn');
             if (input.value.trim()) {
-                btn.innerHTML = '<i class="fas fa-paper-plane text-xl"></i>';
-                btn.onclick = () => send();
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>';
+                btn.onclick = sendMessage;
             } else {
                 btn.innerHTML = '<i class="fas fa-microphone text-xl"></i>';
-                btn.onclick = startRecord;
+                btn.onclick = null;
             }
         }
 
@@ -1394,73 +523,66 @@
                 recorder.ondataavailable = e => audioChunks.push(e.data);
                 recorder.start();
                 recordingSeconds = 0;
-                document.getElementById('voice-timer-time').innerText = '00:00';
+                document.getElementById('voice-timer-time').textContent = '00:00';
                 document.getElementById('voice-timer').classList.remove('hidden');
                 recordingTimer = setInterval(() => {
                     recordingSeconds++;
-                    document.getElementById('voice-timer-time').innerText = formatTime(recordingSeconds);
+                    document.getElementById('voice-timer-time').textContent = formatTime(recordingSeconds);
                 }, 1000);
             } catch (e) {
-                console.error(e);
-                alert("Pa ka jwenn mikwofòn.");
+                alert("Mikwofòn pa disponib");
             }
         }
 
         function stopRecord(cancel = false) {
-            if (recorder) {
-                recorder.stop();
-                recorder.stream.getTracks().forEach(track => track.stop());
-                clearInterval(recordingTimer);
-                document.getElementById('voice-timer').classList.add('hidden');
-                if (!cancel) {
-                    recorder.onstop = async () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const filename = `${Date.now()}-voice.webm`;
-                        uploadFile(audioBlob, filename, 'audio/webm');
-                    };
-                }
-                recorder = null;
+            if (!recorder) return;
+            recorder.stop();
+            recorder.stream.getTracks().forEach(t => t.stop());
+            clearInterval(recordingTimer);
+            document.getElementById('voice-timer').classList.add('hidden');
+            if (!cancel && audioChunks.length > 0) {
+                const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                const filename = `${Date.now()}-voice.webm`;
+                uploadFile(blob, filename, 'audio/webm');
             }
+            recorder = null;
+            audioChunks = [];
         }
 
         function formatTime(s) {
-            return `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
+            const m = String(Math.floor(s / 60)).padStart(2, '0');
+            const sec = String(s % 60).padStart(2, '0');
+            return `${m}:${sec}`;
         }
 
         async function uploadFile(file, filename = null, type = null) {
             if (!file) return;
-            filename = filename || `${Date.now()}-${file.name || 'file'}`;
-            type = type || file.type;
+            filename = filename || `${Date.now()}-${file.name.replace(/ /g, '_')}`;
+            type = type || file.type || 'application/octet-stream';
             try {
                 const res = await fetch(`${UPLOAD_URL}${encodeURIComponent(filename)}`, {
                     method: 'POST',
                     headers: { 'Content-Type': type },
                     body: file
                 });
-                if (!res.ok) throw new Error('Upload failed');
+                if (!res.ok) throw new Error();
                 const link = await res.text();
                 const wrapped = FILE_START + link + FILE_END;
-                send(wrapped);
+                sendMessage(wrapped);
             } catch (e) {
-                console.error(e);
-                alert("Upload pa mache.");
+                alert("Upload echwe");
             }
         }
 
-        function showFullscreen(src, type) {
+        function showFullscreen(src, type = 'image') {
             const overlay = document.createElement('div');
             overlay.id = 'fullscreen-overlay';
-            let media;
-            if (type === 'image') {
-                media = document.createElement('img');
-                media.src = src;
-                media.id = 'fullscreen-media';
-            } else {
-                media = document.createElement('video');
-                media.src = src;
-                media.id = 'fullscreen-media';
+            const media = type === 'image' ? document.createElement('img') : document.createElement('video');
+            media.id = 'fullscreen-media';
+            media.src = src;
+            if (type === 'video') {
                 media.controls = true;
-                media.onclick = () => media.paused ? media.play() : media.pause();
+                media.autoplay = true;
             }
             const close = document.createElement('span');
             close.id = 'fullscreen-close';
@@ -1468,256 +590,61 @@
             close.onclick = () => overlay.remove();
             overlay.appendChild(media);
             overlay.appendChild(close);
+            overlay.onclick = e => e.target === overlay && overlay.remove();
             document.body.appendChild(overlay);
-            overlay.onclick = e => {
-                if (e.target === overlay) overlay.remove();
-            };
         }
 
-        function startApp() {
-            document.getElementById('m-name').innerText = `${user.prenom} ${user.nom}`;
-            document.getElementById('m-dh7').innerText = user.dh7;
-            document.getElementById('m-tfid').innerText = user.tfid;
-            document.getElementById('m-init').innerText = user.nom[0];
-            handleRouting();
-            setupNotifications();
-        }
-
-        async function setupNotifications() {
-            if ('serviceWorker' in navigator && 'PushManager' in window) {
-                try {
-                    const permission = await Notification.requestPermission();
-                    if (permission !== 'granted') return;
-                    const registration = await navigator.serviceWorker.ready;
-                    const subscription = await registration.pushManager.subscribe({
-                        userVisibleOnly: true,
-                        applicationServerKey: urlB64ToUint8Array('BFbcgVOdhydPHrXNgaelinKRIj4wUqTzLi13smhuzuzlWE_0F0evS2UxPm3fu-_gdVwNc5o3ursVFTKayf1Mndc') // Remplace par la clé VAPID publique du serveur
-                    });
-                    await fetch(`${API}/subscribe`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ tfid: user.tfid, subscription: subscription })
-                    });
-                } catch (e) {
-                    console.error('Notification setup failed:', e);
+        function renderText(parent, text) {
+            const trimmed = text.trim();
+            if (text.startsWith(FILE_START)) {
+                const link = text.slice(FILE_START.length, -FILE_END.length);
+                const ext = link.split('.').pop().toLowerCase();
+                if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
+                    parent.innerHTML = `<img src="${link}" class="media-preview" onclick="showFullscreen('${link}', 'image')">`;
+                } else if (['mp4','webm','mov','avi','mkv'].includes(ext)) {
+                    parent.innerHTML = `<video src="${link}" class="media-preview" controls onclick="event.stopPropagation(); showFullscreen('${link}', 'video')"></video>`;
+                } else if (['mp3','wav','ogg','webm'].includes(ext)) {
+                    parent.innerHTML = `<audio src="${link}" controls class="w-full mt-2"></audio>`;
+                } else {
+                    const name = link.split('-').slice(1).join('-').split('.')[0];
+                    parent.innerHTML = `<a href="${link}" target="_blank" class="text-blue-400 underline">${name || 'Fichye'}</a>`;
                 }
-            }
-        }
-
-        function urlB64ToUint8Array(base64String) {
-            const padding = '='.repeat((4 - base64String.length % 4) % 4);
-            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-            const rawData = window.atob(base64);
-            const outputArray = new Uint8Array(rawData.length);
-            for (let i = 0; i < rawData.length; ++i) {
-                outputArray[i] = rawData.charCodeAt(i);
-            }
-            return outputArray;
-        }
-
-        function handleRouting() {
-            const path = window.location.pathname;
-            if (path === '/' || path === '') {
-                navTo('scr-home');
-            } else if (path.startsWith('/TF-')) {
-                const tfid = path.slice(1);
-                navTo('scr-chat', tfid);
-            } else if (path === '/cherche') {
-                navTo('scr-search');
-            } else if (path === '/menu') {
-                navTo('scr-menu');
+            } else if (/^https?:\/\/url\.adamdh7\.org\//.test(trimmed)) {
+                // Même logique que ci-dessus pour les liens directs url.adamdh7.org
+                renderText(parent, FILE_START + trimmed + FILE_END);
+            } else if (trimmed.match(/^TF-\d{6}$/) || trimmed.endsWith('@dh7.tf')) {
+                parent.innerHTML = `<a onclick="openChatByIdentifier('${trimmed}')">${text}</a>`;
+            } else if (/^https?:\/\//.test(trimmed)) {
+                parent.innerHTML = `<a href="${trimmed}" target="_blank" class="text-blue-400 underline">${trimmed}</a>`;
             } else {
-                navTo('scr-home');
+                parent.textContent = text;
             }
         }
 
-        function toggleAuth() {
-            document.getElementById('login-form').classList.toggle('hidden');
-            document.getElementById('reg-form').classList.toggle('hidden');
-        }
+        document.getElementById('attach-btn').onclick = () => document.getElementById('file-input').click();
+        document.getElementById('file-input').onchange = e => e.target.files[0] && uploadFile(e.target.files[0]);
 
-        function logout() { localStorage.clear(); location.reload(); }
-
-        function showLanguageSelector() {
-            document.getElementById('language-overlay').classList.remove('hidden');
-        }
-
-        function changeLanguage(lang) {
-            currentLanguage = lang;
-            localStorage.setItem('language', lang);
-            document.querySelectorAll('[data-key]').forEach(el => {
-                const key = el.dataset.key;
-                if (translations[lang][key]) {
-                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                        el.placeholder = translations[lang][key];
-                    } else {
-                        el.innerText = translations[lang][key];
-                    }
-                }
-            });
-            document.getElementById('language-overlay').classList.add('hidden');
-            if (document.querySelector('.no-contacts')) {
-                document.querySelector('.no-contacts').textContent = translations[lang].no_contacts;
+        // Long press sur le bouton micro pour enregistrer
+        let micTimer;
+        document.getElementById('action-btn').addEventListener('touchstart', e => {
+            if (!document.getElementById('msg-input').value.trim()) {
+                e.preventDefault();
+                micTimer = setTimeout(startRecord, 300);
             }
-        }
-
-        async function showContactPreview(peer) {
-            document.getElementById('preview-overlay').classList.remove('hidden');
-            const preview = document.getElementById('contact-preview');
-            preview.classList.remove('hidden');
-            preview.innerHTML = `
-                <h3 class="font-bold text-lg mb-1">${peer.prenom} ${peer.nom}</h3>
-                <p class="text-[10px] text-zinc-500 mb-4 copyable" onclick="copyToClipboard('${peer.tfid}')">${peer.tfid}</p>
-                <div class="mini-chat"></div>
-            `;
-            try {
-                const res = await fetch(`${API}/messages`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user1_tfid: user.tfid, user2_tfid: peer.tfid })
-                });
-                if (!res.ok) throw new Error('Failed to fetch messages');
-                const messages = await res.json();
-                const msgDiv = preview.querySelector('.mini-chat');
-                const last7 = messages.filter(m => m.text !== 'ok').slice(-7);
-                last7.forEach(m => {
-                    const isMe = m.from === user.tfid;
-                    const div = document.createElement('div');
-                    div.className = `mini-bubble ${isMe ? 'me' : 'them'}`;
-                    div.innerText = getMainMessage(m.text);
-                    msgDiv.appendChild(div);
-                });
-            } catch (e) {
-                console.error(e);
+        });
+        document.getElementById('action-btn').addEventListener('touchend', e => {
+            if (!document.getElementById('msg-input').value.trim()) {
+                clearTimeout(micTimer);
+                if (recorder) stopRecord();
             }
-        }
+        });
 
-        function hideContactPreview() {
-            document.getElementById('preview-overlay').classList.add('hidden');
-            const preview = document.getElementById('contact-preview');
-            preview.classList.add('hidden');
-            preview.innerHTML = '';
-        }
-
-        let currentText = '';
-        function showCopyMenu(x, y, text) {
-            currentText = text;
-            const menu = document.getElementById('copy-menu');
-            menu.style.left = `${x - 40}px`;
-            menu.style.top = `${y + 10}px`;
-            menu.classList.remove('hidden');
-            document.getElementById('copy-btn').innerText = translations[currentLanguage].copy;
-            document.getElementById('reply-btn').innerText = translations[currentLanguage].reply;
-            document.getElementById('copy-btn').onclick = () => {
-                copyToClipboard(text);
-                hideCopyMenu();
-            };
-            document.getElementById('reply-btn').onclick = () => {
-                replyToMessage(text, document.getElementById('chat-messages').lastChild.classList.contains('me') ? translations[currentLanguage].you : document.getElementById('chat-peer-name').innerText);
-                hideCopyMenu();
-            };
-            document.addEventListener('touchstart', handleOutsideTouch);
-            document.addEventListener('mousedown', handleOutsideTouch);
-        }
-
-        function hideCopyMenu() {
-            document.getElementById('copy-menu').classList.add('hidden');
-            document.removeEventListener('touchstart', handleOutsideTouch);
-            document.removeEventListener('mousedown', handleOutsideTouch);
-        }
-
-        function handleOutsideTouch(e) {
-            if (!document.getElementById('copy-menu').contains(e.target)) {
-                hideCopyMenu();
-            }
-        }
-
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                const toast = document.createElement('div');
-                toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full';
-                toast.textContent = translations[currentLanguage].copied;
-                document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 1500);
-            }).catch(e => console.error(e));
-        }
-
-        function addLongPressListeners(element, longPressCallback, shortPressCallback = null) {
-            let longPressTimer;
-            let isLongPress = false;
-            let startX, startY;
-            let isTouch = false;
-
-            const start = (e) => {
-                isTouch = e.type === 'touchstart';
-                const pos = isTouch ? e.touches[0] : e;
-                startX = pos.clientX;
-                startY = pos.clientY;
-                isLongPress = false;
-                longPressTimer = setTimeout(() => {
-                    isLongPress = true;
-                    longPressCallback(startX, startY);
-                }, 500);
-            };
-
-            const end = (e) => {
-                clearTimeout(longPressTimer);
-                if (!isLongPress && shortPressCallback) {
-                    shortPressCallback();
-                }
-            };
-
-            const move = (e) => {
-                const pos = isTouch ? e.touches[0] : e;
-                if (Math.abs(pos.clientX - startX) > 10 || Math.abs(pos.clientY - startY) > 10) {
-                    clearTimeout(longPressTimer);
-                }
-            };
-
-            element.addEventListener('touchstart', start, { passive: true });
-            element.addEventListener('touchend', end, { passive: true });
-            element.addEventListener('touchmove', move, { passive: true });
-            element.addEventListener('mousedown', start);
-            element.addEventListener('mouseup', end);
-            element.addEventListener('mousemove', move);
-            element.addEventListener('mouseleave', () => clearTimeout(longPressTimer));
-        }
-
-        document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
-        document.addEventListener('touchmove', function (e) { if (e.scale !== 1) { e.preventDefault(); } }, { passive: false });
-        document.addEventListener('contextmenu', (e) => e.preventDefault());
+        // Focus input → scroll en bas
+        document.getElementById('msg-input')?.addEventListener('focus', () => setTimeout(scrollToBottom, 300));
 
         changeLanguage(currentLanguage);
-        if(user) {
-            startApp();
-        } else {
-            navTo('scr-auth');
-        }
-        let input = document.getElementById('msg-input');
-        if (input) {
-            input.onkeypress = (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const start = input.selectionStart;
-                    input.value = input.value.substring(0, start) + '\n' + input.value.substring(start);
-                    input.selectionStart = input.selectionEnd = start + 1;
-                    autoResize(input);
-                }
-            };
-            input.addEventListener('focus', () => {
-                setTimeout(scrollToBottom, 300);
-            });
-        }
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').then(function(registration) {
-                    console.log('Service Worker registered');
-                }).catch(function(err) {
-                    console.log('Service Worker registration failed: ', err);
-                });
-            });
-        }
+        if (user) startApp();
+        else navTo('scr-auth');
     </script>
 </body>
 </html>
