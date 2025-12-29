@@ -299,7 +299,6 @@
         .language-overlay.show { transform: translateY(0); }
         .lang-opt {
             padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center;
-            cursor: pointer;
         }
         .backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
         .backdrop.show { opacity: 1; pointer-events: auto; }
@@ -309,28 +308,6 @@
             background: #262628; border: 1px solid #333; color: var(--accent);
             padding: 8px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             z-index: 30; transition: opacity 0.3s;
-        }
-
-        /* Message Menu on Long Press */
-        .message-menu {
-            position: absolute;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 8px;
-            padding: 8px;
-            z-index: 40;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .menu-item {
-            padding: 8px 16px;
-            color: white;
-            cursor: pointer;
-        }
-
-        .menu-item:hover {
-            background: rgba(255,255,255,0.1);
         }
     </style>
 </head>
@@ -350,21 +327,21 @@
 
             <div id="reg-form" class="hidden space-y-4">
                 <div class="flex gap-2">
-                    <input type="text" id="reg-nom" data-key="placeholder-name" placeholder="Nom" class="modern-input">
-                    <input type="text" id="reg-prenom" data-key="placeholder-firstname" placeholder="Prenom" class="modern-input">
+                    <input type="text" id="reg-nom" placeholder="Nom" class="modern-input">
+                    <input type="text" id="reg-prenom" placeholder="Prenom" class="modern-input">
                 </div>
-                <input type="text" id="reg-dh7" data-key="placeholder-dh7" placeholder="DH7 ID" class="modern-input">
-                <input type="number" id="reg-age" data-key="placeholder-age" placeholder="Age" class="modern-input">
-                <input type="password" id="reg-pass" data-key="placeholder-password" placeholder="Password" class="modern-input">
+                <input type="text" id="reg-dh7" placeholder="DH7 ID" class="modern-input">
+                <input type="number" id="reg-age" placeholder="Age" class="modern-input">
+                <input type="password" id="reg-pass" placeholder="Password" class="modern-input">
                 <button onclick="register()" class="w-full bg-white text-black font-black py-4 rounded-xl mt-4" data-key="create-account">JOIN</button>
-                <button onclick="toggleAuth()" class="w-full text-zinc-500 text-sm mt-4" data-key="back">RETOUNEN</button>
+                <button onclick="toggleAuth()" class="w-full text-zinc-500 text-sm mt-4">RETOUNEN</button>
             </div>
         </div>
     </section>
 
     <section id="scr-home" class="screen hidden-right flex flex-col">
         <header class="ios-header flex justify-between items-end">
-            <h2 class="text-3xl font-bold tracking-tight text-white pl-2" data-key="conversations">Diskisyon</h2>
+            <h2 class="text-3xl font-bold tracking-tight text-white pl-2">Diskisyon</h2>
             <div class="flex gap-4 text-blue-500 pb-1">
                 <i class="fa-solid fa-pen-to-square text-xl" onclick="navTo('scr-search')"></i>
                 <i class="fa-solid fa-ellipsis text-xl" onclick="navTo('scr-menu')"></i>
@@ -398,7 +375,7 @@
 
         <div id="reply-preview" class="hidden mx-2 mt-2 bg-zinc-800 p-2 rounded-lg border-l-4 border-blue-500 flex justify-between items-center">
             <div class="overflow-hidden">
-                <p class="text-xs text-blue-400 font-bold" id="reply-to-name" data-key="reply-to">Répondre à...</p>
+                <p class="text-xs text-blue-400 font-bold" id="reply-to-name">Répondre à...</p>
                 <p class="text-xs text-gray-300 truncate" id="reply-content">Text</p>
             </div>
             <button onclick="cancelReply()" class="text-gray-400 px-2">×</button>
@@ -412,10 +389,7 @@
 
             <div class="input-wrapper transition-all duration-200" id="input-wrapper">
                 <div id="recording-ui" class="hidden flex-1">
-                    <i class="fa-solid fa-circle text-xs"></i> <span data-key="recording">Enregistrement... <span id="rec-timer">0:00</span></span>
-                    <svg class="cancel-x hidden" onclick="cancelRecording()" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M1 1L15 15M15 1L1 15" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
+                    <i class="fa-solid fa-circle text-xs"></i> <span>Enregistrement... <span id="rec-timer">0:00</span></span>
                 </div>
                 <textarea id="msg-input" data-key="message-placeholder" placeholder="" rows="1" oninput="handleInput(this)"></textarea>
             </div>
@@ -430,9 +404,9 @@
         <header class="ios-header flex items-center gap-3">
             <div class="flex-1 bg-zinc-800 rounded-xl flex items-center px-3 py-2">
                 <i class="fa-solid fa-magnifying-glass text-gray-500 mr-2"></i>
-                <input type="text" id="search-q" oninput="doSearch()" data-key="search-placeholder" placeholder="Rechercher" class="bg-transparent text-white w-full outline-none">
+                <input type="text" id="search-q" oninput="doSearch()" placeholder="Rechercher" class="bg-transparent text-white w-full outline-none">
             </div>
-            <button onclick="navTo('scr-home')" class="text-blue-500 font-semibold" data-key="cancel">Annuler</button>
+            <button onclick="navTo('scr-home')" class="text-blue-500 font-semibold">Annuler</button>
         </header>
         <div id="search-results" class="flex-1 scroll-container p-4"></div>
     </section>
@@ -445,27 +419,27 @@
             
             <div class="w-full max-w-md bg-zinc-900 rounded-xl overflow-hidden">
                 <div class="p-4 border-b border-zinc-800 flex justify-between items-center" onclick="copyToClipboard(user.tfid)">
-                    <span data-key="tfid">TFID</span>
+                    <span>TFID</span>
                     <span id="m-tfid" class="text-zinc-400 font-mono text-sm">---</span>
                 </div>
                 <div class="p-4 border-b border-zinc-800 cursor-pointer" onclick="showLang()">
-                    <span data-key="language">Langue / Language</span>
+                    <span>Langue / Language</span>
                 </div>
-                <div class="p-4 text-red-500 cursor-pointer font-semibold text-center" onclick="logout()" data-key="logout">
+                <div class="p-4 text-red-500 cursor-pointer font-semibold text-center" onclick="logout()">
                     Se déconnecter
                 </div>
             </div>
-            <button onclick="navTo('scr-home')" class="mt-8 text-zinc-500" data-key="close">Fermer</button>
+            <button onclick="navTo('scr-home')" class="mt-8 text-zinc-500">Fermer</button>
         </div>
     </section>
 
     <div id="backdrop" class="backdrop" onclick="closeOverlays()"></div>
     <div id="lang-sheet" class="language-overlay">
-        <div class="lang-opt" onclick="changeLanguage('ht')" data-key="ht-lang">Kreyòl Ayisyen</div>
-        <div class="lang-opt" onclick="changeLanguage('fr')" data-key="fr-lang">Français</div>
-        <div class="lang-opt" onclick="changeLanguage('en')" data-key="en-lang">English</div>
-        <div class="lang-opt" onclick="changeLanguage('es')" data-key="es-lang">Español</div>
-        <div class="p-4 text-center text-blue-500 font-bold cursor-pointer" onclick="closeOverlays()" data-key="close">Fermer</div>
+        <div class="lang-opt" onclick="changeLanguage('ht')">Kreyòl Ayisyen</div>
+        <div class="lang-opt" onclick="changeLanguage('fr')">Français</div>
+        <div class="lang-opt" onclick="changeLanguage('en')">English</div>
+        <div class="lang-opt" onclick="changeLanguage('es')">Español</div>
+        <div class="p-4 text-center text-blue-500 font-bold cursor-pointer" onclick="closeOverlays()">Fermer</div>
     </div>
     
     <div id="fs-media" class="hidden fullscreen-media" onclick="this.classList.add('hidden'); this.innerHTML='';"></div>
@@ -484,145 +458,12 @@
         let audioChunks = [];
         let recordStartTime = 0;
         let recordTimerInterval = null;
-        let isLocked = false;
 
         const translations = {
-            ht: { 
-                "subtitle": "Digital Hub 7",
-                "placeholder-tfid": "TFID oswa DH7",
-                "placeholder-password": "Modpas",
-                "connect": "KONEKTE",
-                "register": "KREYE YON KONT",
-                "create-account": "KREYE",
-                "message-placeholder": "Ekri yon mesaj...",
-                "placeholder-name": "Nom",
-                "placeholder-firstname": "Prenom",
-                "placeholder-dh7": "DH7 ID",
-                "placeholder-age": "Age",
-                "back": "RETOUNEN",
-                "conversations": "Diskisyon",
-                "cancel": "Anile",
-                "search-placeholder": "Rechèch",
-                "tfid": "TFID",
-                "language": "Lang / Language",
-                "logout": "Dekonekte",
-                "close": "Fèmen",
-                "ht-lang": "Kreyòl Ayisyen",
-                "fr-lang": "Français",
-                "en-lang": "English",
-                "es-lang": "Español",
-                "reply-to": "Reponn a...",
-                "recording": "Enrejistreman...",
-                "error-fill-fields": "Ranpli tout chan yo.",
-                "connection-error": "Erè koneksyon",
-                "account-created": "Kont kreye: ",
-                "error": "Erè",
-                "mic-denied": "Mikwofòn pa otorize",
-                "copy": "Kopye",
-                "select": "Seleksyone"
-            },
-            fr: { 
-                "subtitle": "Hub Numérique 7",
-                "placeholder-tfid": "TFID ou DH7",
-                "placeholder-password": "Mot de passe",
-                "connect": "SE CONNECTER",
-                "register": "CRÉER UN COMPTE",
-                "create-account": "CRÉER",
-                "message-placeholder": "Écrire un message...",
-                "placeholder-name": "Nom",
-                "placeholder-firstname": "Prénom",
-                "placeholder-dh7": "DH7 ID",
-                "placeholder-age": "Âge",
-                "back": "RETOUR",
-                "conversations": "Discussions",
-                "cancel": "Annuler",
-                "search-placeholder": "Rechercher",
-                "tfid": "TFID",
-                "language": "Langue / Language",
-                "logout": "Se déconnecter",
-                "close": "Fermer",
-                "ht-lang": "Créole Haïtien",
-                "fr-lang": "Français",
-                "en-lang": "Anglais",
-                "es-lang": "Espagnol",
-                "reply-to": "Répondre à...",
-                "recording": "Enregistrement...",
-                "error-fill-fields": "Remplissez tous les champs.",
-                "connection-error": "Erreur de connexion",
-                "account-created": "Compte créé: ",
-                "error": "Erreur",
-                "mic-denied": "Microphone non autorisé",
-                "copy": "Copier",
-                "select": "Sélectionner"
-            },
-            en: { 
-                "subtitle": "Digital Hub 7",
-                "placeholder-tfid": "TFID or DH7",
-                "placeholder-password": "Password",
-                "connect": "LOG IN",
-                "register": "CREATE ACCOUNT",
-                "create-account": "JOIN",
-                "message-placeholder": "Type a message...",
-                "placeholder-name": "Last Name",
-                "placeholder-firstname": "First Name",
-                "placeholder-dh7": "DH7 ID",
-                "placeholder-age": "Age",
-                "back": "BACK",
-                "conversations": "Conversations",
-                "cancel": "Cancel",
-                "search-placeholder": "Search",
-                "tfid": "TFID",
-                "language": "Language",
-                "logout": "Logout",
-                "close": "Close",
-                "ht-lang": "Haitian Creole",
-                "fr-lang": "French",
-                "en-lang": "English",
-                "es-lang": "Spanish",
-                "reply-to": "Reply to...",
-                "recording": "Recording...",
-                "error-fill-fields": "Fill all fields.",
-                "connection-error": "Connection error",
-                "account-created": "Account created: ",
-                "error": "Error",
-                "mic-denied": "Microphone not authorized",
-                "copy": "Copy",
-                "select": "Select"
-            },
-            es: { 
-                "subtitle": "Centro Digital 7",
-                "placeholder-tfid": "TFID o DH7",
-                "placeholder-password": "Contraseña",
-                "connect": "CONECTAR",
-                "register": "CREAR UNA CUENTA",
-                "create-account": "UNIRSE",
-                "message-placeholder": "Escribe un mensaje...",
-                "placeholder-name": "Apellido",
-                "placeholder-firstname": "Nombre",
-                "placeholder-dh7": "DH7 ID",
-                "placeholder-age": "Edad",
-                "back": "REGRESAR",
-                "conversations": "Discusiones",
-                "cancel": "Cancelar",
-                "search-placeholder": "Buscar",
-                "tfid": "TFID",
-                "language": "Idioma / Language",
-                "logout": "Cerrar sesión",
-                "close": "Cerrar",
-                "ht-lang": "Criollo Haitiano",
-                "fr-lang": "Francés",
-                "en-lang": "Inglés",
-                "es-lang": "Español",
-                "reply-to": "Responder a...",
-                "recording": "Grabando...",
-                "error-fill-fields": "Llene todos los campos.",
-                "connection-error": "Error de conexión",
-                "account-created": "Cuenta creada: ",
-                "error": "Error",
-                "mic-denied": "Micrófono no autorizado",
-                "copy": "Copiar",
-                "select": "Seleccionar"
-            }
+            ht: { "message-placeholder": "Ekri yon mesaj...", subtitle: "Digital Hub" },
+            fr: { "message-placeholder": "Écrire un message...", subtitle: "Hub Numérique" },
+            en: { "message-placeholder": "Type a message...", subtitle: "Digital Hub" },
+            es: { "message-placeholder": "Escribe un mensaje...", subtitle: "Centro Digital" }
         };
 
         // --- INIT & AUTH ---
@@ -641,14 +482,11 @@
         }
 
         async function login() {
-            let id = document.getElementById('login-id').value.trim();
+            const id = document.getElementById('login-id').value.trim();
             const pass = document.getElementById('login-pass').value;
-            if(!id || !pass) return alert(translations[currentLang]["error-fill-fields"]);
+            if(!id || !pass) return alert("Ranpli tout chan yo.");
             
-            if (!id.startsWith('TF-')) {
-                id = 'TF-' + id;
-            }
-            let finalId = id.includes('@') ? id : id + '@dh7.tf';
+            let finalId = id.includes('@') || id.startsWith('TF-') ? id : id + '@dh7.tf';
             
             try {
                 const res = await fetch(`${API}/login`, {
@@ -661,11 +499,12 @@
                     user = data.user;
                     localStorage.setItem('dh7_session', JSON.stringify(user));
                     startApp();
-                } else { alert(data.error || translations[currentLang]["error"]); }
-            } catch(e) { alert(translations[currentLang]["connection-error"]); }
+                } else { alert(data.error || "Erreur"); }
+            } catch(e) { alert("Erreur connexion"); }
         }
 
         async function register() {
+            // Logic similaire à ton code original
             const nom = document.getElementById('reg-nom').value;
             const prenom = document.getElementById('reg-prenom').value;
             const dh7 = document.getElementById('reg-dh7').value;
@@ -678,9 +517,9 @@
                     body: JSON.stringify({nom, prenom, dh7, age, password: pass})
                 });
                 const d = await res.json();
-                if(d.success) { alert(translations[currentLang]["account-created"] + d.tfid); toggleAuth(); }
-                else alert(d.error || translations[currentLang]["error"]);
-            } catch(e) { alert(translations[currentLang]["error"]); }
+                if(d.success) { alert("Compte créé: "+d.tfid); toggleAuth(); }
+                else alert(d.error);
+            } catch(e) { alert("Erreur"); }
         }
 
         function toggleAuth() {
@@ -698,12 +537,6 @@
                 else s.classList.add('hidden-right');
             });
             
-            let slug = '/';
-            if(screenId === 'scr-search') slug = '/cheche';
-            if(screenId === 'scr-menu') slug = '/menu';
-            if(screenId === 'scr-chat') slug = '/chat';
-            history.pushState({screen: screenId}, '', slug);
-            
             if(screenId === 'scr-home') {
                 loadContacts();
                 if(!homeInterval) homeInterval = setInterval(updateContacts, 3000); // Refresh silencieux
@@ -716,28 +549,18 @@
             }
         }
 
-        // Support for device back button
-        window.addEventListener('popstate', function(event) {
-            const path = location.pathname;
-            if (path === '/cheche') navTo('scr-search');
-            else if (path === '/menu') navTo('scr-menu');
-            else if (path === '/chat') navTo('scr-chat');
-            else navTo('scr-home');
-        });
-
         // --- CONTACTS & LIST ---
         async function loadContacts() {
             try {
-                const resConv = await fetch(`${API}/conversations`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ tfid: user.tfid })
-                });
-                const convUsers = await resConv.json(); // assume array of users with conversations
+                const res = await fetch(`${API}/users`);
+                const allUsers = await res.json();
                 const container = document.getElementById('contact-list');
                 container.innerHTML = '';
                 
-                convUsers.forEach(u => {
+                // Filtrer pour ne pas s'afficher soi-même
+                allUsers.filter(u => u.tfid !== user.tfid).forEach(u => {
+                    // Dans une vraie app on filtrerait ceux avec qui on a parlé
+                    // Ici on affiche tout pour la démo, ou on simule la récupération des derniers messages
                     const div = document.createElement('div');
                     div.className = "contact-card";
                     div.innerHTML = `
@@ -747,7 +570,7 @@
                                 <h3 class="font-bold truncate">${u.prenom} ${u.nom}</h3>
                                 <span class="text-xs text-zinc-600 font-mono">${u.tfid}</span>
                             </div>
-                            <p class="text-sm text-zinc-500 truncate" data-key="click-to-chat">Cliquez pour discuter</p>
+                            <p class="text-sm text-zinc-500 truncate">Cliquez pour discuter</p>
                         </div>
                     `;
                     div.onclick = () => openChat(u);
@@ -758,7 +581,9 @@
         
         // Simplement mettre à jour les badges (refresh silencieux)
         async function updateContacts() {
-            // Update last messages if needed
+            // Ici tu peux ajouter la logique pour mettre à jour seulement le texte "Dernier message"
+            // sans recharger toute la liste pour éviter le scintillement.
+            // Pour l'instant, c'est vide pour garder la fluidité demandée.
         }
 
         function openChat(peer) {
@@ -785,6 +610,8 @@
 
         function renderMessages(messages) {
             const container = document.getElementById('chat-messages');
+            // Optimisation: ne pas toucher au DOM si pas de nouveaux messages ?
+            // Pour l'instant on refait simple mais propre
             const currentScroll = container.scrollTop;
             const isAtBottom = (container.scrollHeight - container.scrollTop - container.clientHeight) < 50;
 
@@ -795,21 +622,14 @@
                 const isMe = m.from === user.tfid;
                 const div = document.createElement('div');
                 div.className = `bubble ${isMe ? 'me' : 'them'}`;
-                div.dataset.msgId = m.id; // Assuming id
                 
+                // Parsing des réponses
                 let content = m.text;
-                let replyHtml = '';
-                const match = content.match(/«(.*?)» (.*)/);
-                if (match) {
-                    const reply = match[1];
-                    content = match[2];
-                    replyHtml = `<div class="reply-bar">
-                        <span class="reply-name">${translations[currentLang]["reply-to"]}</span>
-                        <span class="reply-text">${renderReplyPreview(reply)}</span>
-                    </div>`;
-                }
+                // Si c'est un message "Reply", on le parse (format simple simulé)
+                // Ici on assume que le texte contient le contenu.
                 
-                div.innerHTML = replyHtml + renderText(content);
+                // RENDU DU CONTENU (TEXTE + MEDIA)
+                div.innerHTML = renderText(content);
                 
                 if(isMe) {
                     const status = document.createElement('span');
@@ -818,8 +638,8 @@
                     div.appendChild(status);
                 }
                 
-                addSwipeListener(div);
-                addLongPressListener(div);
+                // Swipe to reply (Event Listeners)
+                // Ajoute tes listeners de swipe ici si besoin
                 
                 container.appendChild(div);
             });
@@ -828,24 +648,14 @@
             else container.scrollTop = currentScroll;
         }
 
-        function renderReplyPreview(content) {
-            const html = renderText(content);
-            if (html.includes('<img')) {
-                return html.replace('<img ', '<img style="max-height:40px; max-width:40px;" ');
-            } else if (html.includes('<video')) {
-                return html.replace('<video ', '<video style="max-height:40px; max-width:40px;" ');
-            } else if (html.includes('<audio')) {
-                return '<span>Voice message</span>';
-            } else {
-                return content.substring(0, 50) + (content.length > 50 ? '...' : '');
-            }
-        }
-
         // --- CORE: MEDIA RENDERING & UTILS ---
         
         function renderText(text) {
+            // 1. Détection Fichier (Base64 ou URL)
+            // Pour cet exemple, on détecte les extensions ou les headers data:
+            
             // Image
-            if(text.match(/\.(jpeg|jpg|gif|png)$/i) || text.startsWith('data:image') || text.match(/\.r2\.dev$/i)) {
+            if(text.match(/\.(jpeg|jpg|gif|png)$/i) || text.startsWith('data:image')) {
                 return `<div class="media-content" onclick="openFullscreen(this)"><img src="${text}" loading="lazy" /></div>`;
             }
             // Video
@@ -863,32 +673,33 @@
         }
 
         function openFullscreen(el) {
-            const src = el.querySelector('img') ? el.querySelector('img').src : el.querySelector('video').src;
+            const src = el.querySelector('img').src;
             const fs = document.getElementById('fs-media');
-            if (el.querySelector('img')) {
-                fs.innerHTML = `<img src="${src}" />`;
-            } else {
-                fs.innerHTML = `<video src="${src}" controls playsinline></video>`;
-            }
+            fs.innerHTML = `<img src="${src}" />`;
             fs.classList.remove('hidden');
         }
 
         // --- INPUT & SENDING LOGIC ---
 
         function handleInput(el) {
+            // Auto resize
             el.style.height = 'auto';
             el.style.height = (el.scrollHeight) + 'px';
             updateActionButton();
         }
 
+        // Gestion Bouton Dynamique (Micro vs Send)
         function initActionBtn() {
             const btn = document.getElementById('action-btn');
-            btn.addEventListener('touchstart', handleVoiceStart);
-            btn.addEventListener('touchmove', handleVoiceMove);
-            btn.addEventListener('touchend', handleVoiceEnd);
-            btn.addEventListener('mousedown', handleVoiceStart);
-            btn.addEventListener('mousemove', handleVoiceMove);
-            btn.addEventListener('mouseup', handleVoiceEnd);
+            const icon = document.getElementById('action-icon');
+            const input = document.getElementById('msg-input');
+
+            // MOUSE / TOUCH EVENTS pour l'enregistrement
+            btn.addEventListener('mousedown', startRecording);
+            btn.addEventListener('touchstart', startRecording);
+            
+            btn.addEventListener('mouseup', endRecordingOrSend);
+            btn.addEventListener('touchend', endRecordingOrSend);
         }
 
         function updateActionButton() {
@@ -897,33 +708,32 @@
             const icon = document.getElementById('action-icon');
             
             if(input.value.trim().length > 0) {
+                // Mode SEND
                 btn.classList.remove('mic-mode');
                 icon.className = "fa-solid fa-paper-plane";
             } else {
+                // Mode MIC
                 btn.classList.add('mic-mode');
                 icon.className = "fa-solid fa-microphone";
             }
         }
 
         // --- VOICE RECORDER LOGIC ---
-        let startY = 0;
-        let startX = 0;
         let longPressTimer;
         let isRecording = false;
 
-        async function handleVoiceStart(e) {
+        function startRecording(e) {
             const input = document.getElementById('msg-input');
-            if(input.value.trim().length > 0) return;
+            if(input.value.trim().length > 0) return; // Si texte, ignorer le micro
 
-            e.preventDefault();
-            startY = e.touches ? e.touches[0].clientY : e.clientY;
-            startX = e.touches ? e.touches[0].clientX : e.clientX;
-
+            e.preventDefault(); // Empêcher le focus perdu
             longPressTimer = setTimeout(async () => {
                 isRecording = true;
+                // UI Update
                 document.getElementById('msg-input').classList.add('hidden');
                 document.getElementById('recording-ui').classList.remove('hidden');
                 
+                // Start Logic
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     mediaRecorder = new MediaRecorder(stream);
@@ -932,51 +742,33 @@
                     mediaRecorder.start();
                     startTimer();
                 } catch(err) {
-                    alert(translations[currentLang]["mic-denied"]);
+                    alert("Microphone non autorisé");
                     cancelRecording();
                 }
-            }, 300);
+            }, 300); // 300ms long press
         }
 
-        function handleVoiceMove(e) {
-            if (!isRecording) return;
-
-            const currentY = e.touches ? e.touches[0].clientY : e.clientY;
-            const currentX = e.touches ? e.touches[0].clientX : e.clientX;
-            const deltaY = startY - currentY;
-            const deltaX = currentX - startX;
-
-            if (deltaY > 50 && !isLocked) {
-                isLocked = true;
-                document.getElementById('recording-ui').classList.add('locked');
-                document.querySelector('#recording-ui .cancel-x').classList.remove('hidden');
-            } else if (Math.abs(deltaX) > 50 && deltaX < 0) {
-                cancelRecording();
-            }
-        }
-
-        function handleVoiceEnd(e) {
+        function endRecordingOrSend(e) {
             clearTimeout(longPressTimer);
             const input = document.getElementById('msg-input');
             
+            // Cas 1: C'était un clic court sur "Envoyer" (car il y a du texte)
             if(input.value.trim().length > 0) {
                 sendMessage();
                 return;
             }
 
+            // Cas 2: C'était un enregistrement vocal
             if(isRecording) {
                 stopTimer();
                 isRecording = false;
-                isLocked = false;
-                document.getElementById('recording-ui').classList.remove('locked');
-                document.querySelector('#recording-ui .cancel-x').classList.add('hidden');
                 document.getElementById('msg-input').classList.remove('hidden');
                 document.getElementById('recording-ui').classList.add('hidden');
                 
                 if(mediaRecorder && mediaRecorder.state !== 'inactive') {
                     mediaRecorder.stop();
                     mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' }); // ou webm
                         const reader = new FileReader();
                         reader.readAsDataURL(audioBlob);
                         reader.onloadend = () => {
@@ -984,16 +776,16 @@
                         };
                     };
                 }
+            } else {
+                // Clic court sur le micro sans enregistrer -> message d'aide ou rien
+                // alert("Maintenez pour parler");
             }
         }
         
         function cancelRecording() {
             isRecording = false;
-            isLocked = false;
             stopTimer();
             if(mediaRecorder) mediaRecorder.stop();
-            document.getElementById('recording-ui').classList.remove('locked');
-            document.querySelector('#recording-ui .cancel-x').classList.add('hidden');
             document.getElementById('msg-input').classList.remove('hidden');
             document.getElementById('recording-ui').classList.add('hidden');
         }
@@ -1021,20 +813,16 @@
                 sendMedia(base64, file.name);
             };
             reader.readAsDataURL(file);
-            input.value = "";
+            input.value = ""; // Reset
         }
 
         // --- SEND API ---
         async function sendMessage() {
             const input = document.getElementById('msg-input');
-            let text = input.value.trim();
+            const text = input.value.trim();
             if(!text) return;
             
-            if (replyingTo) {
-                text = `«${replyingTo.content}» ${text}`;
-                cancelReply();
-            }
-            
+            // Reset UI
             input.value = '';
             input.style.height = 'auto';
             updateActionButton();
@@ -1044,12 +832,9 @@
         }
 
         async function sendMedia(base64Data, filename) {
-            let content = base64Data;
-            if (replyingTo) {
-                content = `«${replyingTo.content}» ${content}`;
-                cancelReply();
-            }
-            await postData(content);
+            // Dans ce système simplifié, on envoie le base64 comme texte.
+            // Le rendu sera géré par renderText().
+            await postData(base64Data);
             fetchMessages();
         }
 
@@ -1075,27 +860,17 @@
         
         // --- SEARCH ---
         async function doSearch() {
-            const q = document.getElementById('search-q').value.trim().toLowerCase();
-            if (q.length < 7) {
-                document.getElementById('search-results').innerHTML = '';
-                return;
-            }
-
-            let searchQuery = q;
-            if (!q.startsWith('TF-') && !q.includes('@') && !q.includes('dh7')) {
-                searchQuery = 'TF-' + q;
-            } 
-
+            const q = document.getElementById('search-q').value.toLowerCase();
             const res = await fetch(`${API}/users`);
             const users = await res.json();
             const filtered = users.filter(u => 
-                (u.nom.toLowerCase().includes(searchQuery) || u.prenom.toLowerCase().includes(searchQuery) || u.tfid.toLowerCase().includes(searchQuery) || u.dh7.toLowerCase().includes(searchQuery)) && u.tfid !== user.tfid
+                (u.nom.toLowerCase().includes(q) || u.prenom.toLowerCase().includes(q)) && u.tfid !== user.tfid
             );
             
             const div = document.getElementById('search-results');
             div.innerHTML = '';
             filtered.forEach(u => {
-                div.innerHTML += `<div class="contact-card" onclick="openChat({tfid:'${u.tfid}',nom:'${u.nom}',prenom:'${u.prenom}', dh7:'${u.dh7}'})">
+                div.innerHTML += `<div class="contact-card" onclick="openChat({tfid:'${u.tfid}',nom:'${u.nom}',prenom:'${u.prenom}'})">
                     <div class="avatar">${u.nom[0]}</div>
                     <div><b>${u.prenom} ${u.nom}</b><br><small>${u.tfid}</small></div>
                 </div>`;
@@ -1114,88 +889,13 @@
         function changeLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('language', lang);
-            document.querySelectorAll('[data-key]').forEach(el => {
-                const key = el.dataset.key;
-                if (translations[lang][key]) {
-                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                        el.placeholder = translations[lang][key];
-                    } else if (el.tagName === 'SPAN' || el.tagName === 'P' || el.tagName === 'H2' || el.tagName === 'BUTTON' || el.tagName === 'DIV') {
-                        el.innerText = translations[lang][key];
-                    }
-                }
-            });
+            document.getElementById('msg-input').placeholder = translations[lang]["message-placeholder"];
             closeOverlays();
         }
         
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text);
-            alert(translations[currentLang]["copied"] || "Copié: " + text);
-        }
-
-        // --- SWIPE TO REPLY ---
-        function addSwipeListener(bubble) {
-            let startX = 0;
-            bubble.addEventListener('touchstart', e => {
-                startX = e.touches[0].clientX;
-            });
-            bubble.addEventListener('touchend', e => {
-                const endX = e.changedTouches[0].clientX;
-                if (Math.abs(startX - endX) > 50) {
-                    const content = bubble.querySelector('.reply-bar') ? bubble.innerText.split('\n').slice(1).join('\n') : bubble.innerText;
-                    setReply(bubble.dataset.msgId, content);
-                }
-            });
-        }
-
-        function setReply(msgId, content) {
-            replyingTo = { id: msgId, content: content };
-            document.getElementById('reply-preview').classList.remove('hidden');
-            document.getElementById('reply-content').innerText = content.substring(0, 50) + (content.length > 50 ? '...' : '');
-            document.getElementById('reply-to-name').innerText = translations[currentLang]["reply-to"];
-        }
-
-        function cancelReply() {
-            replyingTo = null;
-            document.getElementById('reply-preview').classList.add('hidden');
-        }
-
-        // --- LONG PRESS MENU ---
-        function addLongPressListener(bubble) {
-            let timer;
-            bubble.addEventListener('touchstart', e => {
-                timer = setTimeout(() => {
-                    showMessageMenu(e, bubble);
-                }, 500);
-            });
-            bubble.addEventListener('touchend', () => clearTimeout(timer));
-            bubble.addEventListener('touchmove', () => clearTimeout(timer));
-        }
-
-        function showMessageMenu(e, bubble) {
-            const menu = document.createElement('div');
-            menu.className = 'message-menu';
-            menu.style.top = `${e.changedTouches ? e.changedTouches[0].clientY : e.clientY}px`;
-            menu.style.left = `${e.changedTouches ? e.changedTouches[0].clientX : e.clientX}px`;
-            const mainText = bubble.querySelector('.reply-bar') ? bubble.innerText.split('\n').slice(1).join('\n') : bubble.innerText;
-            menu.innerHTML = `
-                <div class="menu-item" data-key="copy" onclick="copyMessage('${mainText.replace(/'/g, "\\'")}')">Copye</div>
-                <div class="menu-item" data-key="select">Seleksyone</div>
-            `;
-            document.body.appendChild(menu);
-            changeLanguage(currentLang); // Update menu texts
-            setTimeout(() => {
-                document.addEventListener('click', () => menu.remove(), { once: true });
-            }, 0);
-        }
-
-        function copyMessage(text) {
-            navigator.clipboard.writeText(text);
-            alert(translations[currentLang]["message-copied"] || 'Message copié');
-        }
-
-        function showContactInfo() {
-            // To implement if needed
-            alert('Contact info not implemented');
+            alert("Copié: " + text);
         }
 
     </script>
