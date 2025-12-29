@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <title>D'H7 | Digital Hub 7</title>
-    <meta name="description" content="D'H7 (Digital Hub 7) se yon platfòm kominikasyon sekirize ki pèmèt ou jere idantite dijital ou ak yon TFID/D'H7 inik. Konekte kounye a pou w jwenn aksè nan yon rezo pwoteze, miltiling (Kreyòl, Fransè, Angle, Espanyòl), epi fasil pou itilize.">
+    <meta name="description" content="D'H7 (Digital Hub 7) se yon platfòm kominikasyon sekirize ki pèmèt ou jere idantite dijital ou ak yon TFID/D'H7 inik. Konekte kounye a pou w jwenn aksè nan yon rezo pwoteje, miltiling (Kreyòl, Fransè, Angle, Espanyòl), epi fasil pou itilize.">
 
     <link rel="icon" type="image/png" href="https://www.adamdh7.org/asset/IMG_7023.png">
     <link rel="shortcut icon" href="https://www.adamdh7.org/asset/IMG_7023.png">
@@ -90,8 +90,8 @@
             z-index: 10;
         }
 
-        /* Scroll doux et naturel comme WhatsApp */
-        .chat-container, #contact-list, #search-results {
+        /* Scroll parfait comme WhatsApp */
+        .scroll-container {
             flex: 1;
             overflow-y: auto;
             padding: 1.5rem;
@@ -105,10 +105,7 @@
             touch-action: pan-y pinch-zoom;
         }
 
-        .chat-container::-webkit-scrollbar, #contact-list::-webkit-scrollbar, #search-results::-webkit-scrollbar { 
-            display: none; 
-            width: 0;
-        }
+        .scroll-container::-webkit-scrollbar { display: none; width: 0; }
 
         .bubble {
             max-width: 75%;
@@ -163,13 +160,8 @@
             border-radius: 2px;
         }
 
-        .reply-bar.reply-me::before {
-            background: #ffffff;
-        }
-
-        .reply-bar.reply-them::before {
-            background: #007aff;
-        }
+        .reply-bar.reply-me::before { background: #ffffff; }
+        .reply-bar.reply-them::before { background: #007aff; }
 
         .reply-name {
             font-size: 0.8rem;
@@ -178,9 +170,7 @@
             display: block;
         }
 
-        .bubble.me .reply-name {
-            color: #fff;
-        }
+        .bubble.me .reply-name { color: #fff; }
 
         .reply-text {
             font-size: 0.8rem;
@@ -190,14 +180,9 @@
             word-break: break-word;
         }
 
-        .bubble.me .reply-text {
-            color: #d0d0d0;
-        }
+        .bubble.me .reply-text { color: #d0d0d0; }
 
-        .main-message {
-            display: block;
-            margin-top: 0.2rem;
-        }
+        .main-message { display: block; margin-top: 0.2rem; }
 
         .status {
             position: absolute;
@@ -208,9 +193,7 @@
             font-weight: bold;
         }
 
-        .status.read {
-            color: #007aff;
-        }
+        .status.read { color: #007aff; }
 
         .input-area {
             padding: 1rem 1.5rem calc(1rem + env(safe-area-inset-bottom)) 1.5rem;
@@ -255,9 +238,7 @@
             text-align: center;
         }
 
-        .logo {
-            cursor: pointer;
-        }
+        .logo { cursor: pointer; }
 
         #msg-input {
             resize: none;
@@ -282,10 +263,7 @@
             transition: opacity 0.3s;
         }
 
-        #scroll-down.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
+        #scroll-down.hidden { opacity: 0; pointer-events: none; }
 
         #voice-timer {
             position: absolute;
@@ -377,7 +355,7 @@
             </div>
         </header>
         
-        <div id="contact-list"></div>
+        <div id="contact-list" class="scroll-container"></div>
     </section>
 
     <section id="scr-chat" class="screen hidden-right">
@@ -391,9 +369,9 @@
             </div>
         </header>
 
-        <div id="chat-messages" class="chat-container"></div>
+        <div id="chat-messages" class="scroll-container"></div>
 
-        <div id="reply-preview" class="hidden mx-4">
+        <div id="reply-preview" class="hidden mx-4 mb-2">
             <div class="bg-zinc-800 border border-zinc-700 rounded-lg p-3 flex justify-between items-center">
                 <span id="reply-text" class="text-sm text-zinc-400"></span>
                 <span id="cancel-reply" class="text-blue-500 cursor-pointer text-xl">×</span>
@@ -414,7 +392,7 @@
                     <i class="fas fa-microphone text-xl"></i>
                 </button>
             </div>
-            <input type="file" id="file-input" hidden>
+            <input type="file" id="file-input" hidden accept="image/*,video/*,audio/*">
         </div>
 
         <div id="scroll-down" class="hidden" onclick="scrollToBottom()">
@@ -429,7 +407,7 @@
             <input type="text" id="search-q" oninput="doSearch()" data-key="search-placeholder" placeholder="Chèche nan D'H7..." class="flex-1 bg-zinc-900 border border-zinc-800 rounded-2xl py-3 px-5 text-white">
             <button onclick="navTo('scr-home')" class="text-sm font-bold text-zinc-400" data-key="close">ANILE</button>
         </header>
-        <div id="search-results"></div>
+        <div id="search-results" class="scroll-container"></div>
     </section>
 
     <section id="scr-menu" class="screen hidden-right">
@@ -476,6 +454,7 @@
         const FILE_END = '\u2062';
         const REPLY_START = '\u2063';
         const REPLY_END = '\u2064';
+
         let user = JSON.parse(localStorage.getItem('dh7_session')) || null;
         let activePeer = null;
         let chatInterval = null;
@@ -489,14 +468,14 @@
         let recordingTimer = null;
         let recordingSeconds = 0;
 
-        const translations = { /* même objet que précédemment */ 
+        const translations = {
             ht: { logo: "D'H7", subtitle: "Digital HUB 7", "placeholder-tfid": "TFID oswa DH7", "placeholder-password": "Modpas", connect: "Konekte", register: "KREYE YON KONT", "placeholder-lastname": "Nom", "placeholder-firstname": "Prenom", "placeholder-dh7": "DH7 ID (ex: adamdh7@dh7.tf)", "placeholder-age": "Laj", "create-account": "JOIN D'H7", "back-to-login": "RETOUNEN", "search-placeholder": "Chèche nan D'H7...", "personal-tfid": "TFID Sekirize", language: "LANGUE", logout: "DEKONEKTE", close: "ANILE", "message-placeholder": "Ekri yon mesaj...", no_contacts: "Pa gen kontak pako. Chèche moun pou kòmanse pale.", copy: "Kopi", reply: "Reponn", copied: "Kopi", you: "Ou" },
             fr: { logo: "D'H7", subtitle: "Digital HUB 7", "placeholder-tfid": "TFID ou DH7", "placeholder-password": "Mot de passe", connect: "Se connecter", register: "CRÉER UN COMPTE", "placeholder-lastname": "Nom", "placeholder-firstname": "Prénom", "placeholder-dh7": "DH7 ID (ex: adamsdhaiti@dh7.tf)", "placeholder-age": "Âge", "create-account": "REJOINDRE D'H7", "back-to-login": "RETOUR", "search-placeholder": "Rechercher dans D'H7...", "personal-tfid": "TFID Sécurisé", language: "LANGUE", logout: "SE DÉCONNECTER", close: "ANNULER", "message-placeholder": "Écrire un message...", no_contacts: "Pas de contacts encore. Recherchez des personnes pour commencer à parler.", copy: "Copier", reply: "Répondre", copied: "Copié", you: "Vous" },
             en: { logo: "D'H7", subtitle: "Digital HUB 7", "placeholder-tfid": "TFID or DH7", "placeholder-password": "Password", connect: "Login", register: "CREATE AN ACCOUNT", "placeholder-lastname": "Last Name", "placeholder-firstname": "First Name", "placeholder-dh7": "DH7 ID (ex: adamsdhaiti@dh7.tf)", "placeholder-age": "Age", "create-account": "JOIN D'H7", "back-to-login": "BACK", "search-placeholder": "Search in D'H7...", "personal-tfid": "Secure TFID", language: "LANGUAGE", logout: "LOGOUT", close: "CANCEL", "message-placeholder": "Type a message...", no_contacts: "No contacts yet. Search for people to start talking.", copy: "Copy", reply: "Reply", copied: "Copied", you: "You" },
             es: { logo: "D'H7", subtitle: "Digital HUB 7", "placeholder-tfid": "TFID o DH7", "placeholder-password": "Contraseña", connect: "Conectar", register: "CREAR UNA CUENTA", "placeholder-lastname": "Apellido", "placeholder-firstname": "Nombre", "placeholder-dh7": "DH7 ID (ej: adamsdhaiti@dh7.tf)", "placeholder-age": "Edad", "create-account": "UNIRSE A D'H7", "back-to-login": "REGRESAR", "search-placeholder": "Buscar en D'H7...", "personal-tfid": "TFID Seguro", language: "IDIOMA", logout: "CERRAR SESIÓN", close: "CANCELAR", "message-placeholder": "Escribe un mensaje...", no_contacts: "No hay contactos aún. Busca personas para comenzar a hablar.", copy: "Copiar", reply: "Responder", copied: "Copiado", you: "Tú" }
         };
 
-        /* Toutes les fonctions identiques à la version précédente (navTo, login, register, loadContacts, openChat, fetchMessages, renderText, send, uploadFile, showFullscreen, etc.) */
+        // Toutes les fonctions de base (navTo, login, register, loadContacts, etc.) restent identiques à la version précédente
 
         function autoResize(el) {
             el.style.height = 'auto';
@@ -580,7 +559,7 @@
             const media = type === 'image' ? document.createElement('img') : document.createElement('video');
             media.id = 'fullscreen-media';
             media.src = src;
-            if (type === 'video') {
+            if (type !== 'image') {
                 media.controls = true;
                 media.autoplay = true;
             }
@@ -610,7 +589,6 @@
                     parent.innerHTML = `<a href="${link}" target="_blank" class="text-blue-400 underline">${name || 'Fichye'}</a>`;
                 }
             } else if (/^https?:\/\/url\.adamdh7\.org\//.test(trimmed)) {
-                // Même logique que ci-dessus pour les liens directs url.adamdh7.org
                 renderText(parent, FILE_START + trimmed + FILE_END);
             } else if (trimmed.match(/^TF-\d{6}$/) || trimmed.endsWith('@dh7.tf')) {
                 parent.innerHTML = `<a onclick="openChatByIdentifier('${trimmed}')">${text}</a>`;
@@ -621,10 +599,7 @@
             }
         }
 
-        document.getElementById('attach-btn').onclick = () => document.getElementById('file-input').click();
-        document.getElementById('file-input').onchange = e => e.target.files[0] && uploadFile(e.target.files[0]);
-
-        // Long press sur le bouton micro pour enregistrer
+        // Gestion du bouton micro (appui long pour enregistrer)
         let micTimer;
         document.getElementById('action-btn').addEventListener('touchstart', e => {
             if (!document.getElementById('msg-input').value.trim()) {
@@ -633,13 +608,16 @@
             }
         });
         document.getElementById('action-btn').addEventListener('touchend', e => {
-            if (!document.getElementById('msg-input').value.trim()) {
-                clearTimeout(micTimer);
-                if (recorder) stopRecord();
+            clearTimeout(micTimer);
+            if (recorder && !document.getElementById('msg-input').value.trim()) {
+                stopRecord();
             }
         });
 
-        // Focus input → scroll en bas
+        document.getElementById('attach-btn').onclick = () => document.getElementById('file-input').click();
+        document.getElementById('file-input').onchange = e => e.target.files[0] && uploadFile(e.target.files[0]);
+
+        // Focus sur l'input → scroll vers le bas
         document.getElementById('msg-input')?.addEventListener('focus', () => setTimeout(scrollToBottom, 300));
 
         changeLanguage(currentLanguage);
