@@ -1,43 +1,99 @@
-1. **Pas de barre de défilement affichée dans l'UI** :
-   - **Explication** : La barre de défilement (scrollbar) est complètement masquée dans tous les conteneurs de défilement (comme la liste de contacts ou les messages de chat). Cela donne un look plus propre et natif comme sur iOS.
-   - **Fonctionnement** : Dans le CSS, on utilise `.scroll-container::-webkit-scrollbar { width: 0; display: none; }` pour cacher la scrollbar sur tous les navigateurs compatibles. Le défilement reste fluide grâce à `-webkit-overflow-scrolling: touch;`.
-   - **Affichage** : Aucun élément visuel de scrollbar n'apparaît, même quand on fait défiler. L'utilisateur défile naturellement avec le doigt ou la souris sans voir de barre.
+1. Le Moteur de Synchronisation Silencieuse
+Remplace ta logique de récupération par celle-ci. Elle ne touche pas au DOM si rien n'a changé.
+// On garde en mémoire les IDs des messages déjà affichés
+let displayedMessageIds = new Set();
 
-2. **Slugs pour support du bouton back sur appareil** :
-   - **Explication** : Les slugs sont des URLs simples pour chaque écran, permettant au bouton "back" du navigateur ou de l'appareil de fonctionner correctement (via `history.pushState`).
-   - **Fonctionnement** : Quand on navigue vers un écran, on met à jour l'URL (ex: `/` pour home, `/cheche` pour recherche, `/menu` pour menu). L'événement `popstate` écoute le back et navigue en conséquence.
-   - **Affichage** : L'URL dans la barre du navigateur change (ex: domain.com/cheche pour recherche), mais l'UI reste la même. Sur mobile, le back de l'appareil ramène à l'écran précédent sans recharger la page.
+async function syncChatSilently() {
+    if (!activePeer || !user) return;
 
-3. **Répondre aux messages par swipe gauche/droite** :
-   - **Explication** : Swipe sur un message affiche une barre de reply au-dessus du clavier pour répondre à ce message spécifique.
-   - **Fonctionnement** : On ajoute un listener touch sur chaque bubble de message. Si swipe > 50px, on set `replyingTo` et affiche `#reply-preview` avec le contenu tronqué et un X pour annuler.
-   - **Affichage** : La barre apparaît comme un petit bloc au-dessus du champ input, avec "Répondre à..." + aperçu du message, et un bouton X pour fermer. Le reply s'envoie avec des caractères spéciaux «reply» message.
+    try {
+        const res = await fetch(`${API}/messages`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user1_tfid: user.tfid, user2_tfid: activePeer.tfid })
+        });
+        
+        const messages = await res.json();
+        const container = document.getElementById('chat-messages');
+        
+        // On filtre uniquement les messages qui ne sont pas "ok" 
+        // ET qui n'ont pas encore été affichés (ceux qui n'existent pas dans notre Set)
+        const newMessages = messages.filter(m => {
+            const msgId = m.time + m.from; // Identifiant unique basé sur temps + expéditeur
+            return m.text !== 'ok' && !displayedMessageIds.has(msgId);
+        });
 
-4. **Envoi de voice avec lock, swipe gauche pour annuler, icône X quand locked** :
-   - **Explication** : Pour enregistrer un voice, appui long sur le bouton mic. Swipe haut pour lock, swipe gauche pour annuler. Quand locked, icône X pour annuler.
-   - **Fonctionnement** : Listeners touchstart/move/end sur le bouton action. Appui long (300ms) démarre enregistrement. Move détecte deltaY > 50 pour lock (affiche X SVG), deltaX < -50 pour annuler. End envoie si not annulé.
-   - **Affichage** : Pendant enregistrement, UI montre "Enregistrement... 0:00" avec animation pulse. Locked : timer au centre, X SVG à droite clickable pour annuler.
+        if (newMessages.length > 0) {
+            // Détecter si l'utilisateur est en train de lire en haut
+            const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 150;
 
-5. **Long press sur message affiche fond avec Copy et Select** :
-   - **Explication** : Appui long (500ms) sur un message ouvre un menu avec options Copy et Select.
-   - **Fonctionnement** : Listener touchstart sur bubble, timer pour long press. Crée un div menu absolu avec items. Copy utilise `navigator.clipboard.writeText` sur le texte principal (sans reply si présent).
-   - **Affichage** : Menu popup sombre avec "Copy" et "Select" listés verticalement, positionné près du doigt. Clique sur Copy copie le message et alerte "Message copié".
+            newMessages.forEach(m => {
+                const msgId = m.time + m.from;
+                displayedMessageIds.add(msgId); // On le marque comme "existant"
+                
+                // On l'ajoute au DOM tout en bas
+                appendMessageToDOM(m);
+            });
 
-6. **4 langues stockées en local storage, textes prédéfinis changent** :
-   - **Explication** : Les langues (ht, fr, en, es) sont choisies via overlay, stockées en local. Tous les textes avec `data-key` changent automatiquement.
-   - **Fonctionnement** : `changeLanguage` met à jour localStorage et boucle sur `[data-key]` pour setter placeholder/text. Traductions dans un dict complet.
-   - **Affichage** : Ex: Placeholder "Ekri yon mesaj..." devient "Type a message..." en en. Tous boutons, labels, etc., s'adaptent instantanément sans recharger.
+            // On ne scrolle que si l'utilisateur n'est pas en train de remonter le chat
+            if (isAtBottom) {
+                scrollToBottom();
+            }
+        }
+        
+        // Mise à jour des status (Checkmarks) sans toucher au texte
+        updateCheckmarks(messages);
 
-7. **Recherche avec tfid/dh7, auto-ajout TF- si absent, min 7 chiffres** :
-   - **Explication** : Recherche users par nom/prenom/tfid/dh7. Ajoute 'TF-' si pas présent et min 7 chars. Pas de recherche si <7.
-   - **Fonctionnement** : `doSearch` vérifie length <7 -> clear results. Sinon, prefix 'TF-' si besoin, filter users, affiche cards cliquables.
-   - **Affichage** : Résultats comme cards avec avatar, nom, tfid. Clique ouvre chat.
+    } catch (e) {
+        // En silence total
+    }
+}
 
-Améliorations nécessaires non remarquées :
-- Sanitization inputs pour sécurité (XSS).
-- Accessibilité (aria-labels sur boutons).
-- Optimisation perf (virtual scrolling pour longs chats).
-- Gestion erreurs réseau (retries fetch).
-- Animations messages entrants pour UX.
+2. La fonction d'ajout (Append) propre
+Cette fonction crée l'élément et l'injecte sans vider le container.
+function appendMessageToDOM(m) {
+    const container = document.getElementById('chat-messages');
+    const isMe = m.from === user.tfid;
+    
+    const div = document.createElement('div');
+    div.className = `bubble ${isMe ? 'me' : 'them'} animate-slide-in`; // Ajoute une petite animation
+    div.id = `msg-${m.time.replace(/[^a-zA-Z0-9]/g, '-')}`;
+    
+    // Rendu du texte (sécurisé ou media)
+    div.innerHTML = renderText(m.text);
+    
+    if (isMe) {
+        const status = document.createElement('span');
+        status.className = 'status';
+        status.innerText = m.read ? '✓✓' : '✓';
+        if (m.read) status.classList.add('read');
+        div.appendChild(status);
+    }
 
-Ces fonctionnalités s'affichent de manière native iOS-like, fonctionnent via events touch/mouse, et sont intégrées dans le code pour une app fluide.
+    addMessageListeners(div, m.text);
+    container.appendChild(div);
+}
+
+3. CSS pour l'apparition fluide (Style Pro)
+Pour que l'utilisateur ne remarque pas un "saut" brusque, ajoute cette animation dans ton <style> :
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-in {
+    animation: slideIn 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+}
+
+4. Réinitialisation lors du changement de contact
+Quand tu changes de contact (clic sur un autre peer), tu dois vider le Set pour que les nouveaux messages s'affichent.
+function resetChatView() {
+    displayedMessageIds.clear(); // Vide le stockage local de la session
+    document.getElementById('chat-messages').innerHTML = ''; // Vide l'écran
+    currentChatMessages = [];
+}
+
+Les bénéfices de cette méthode :
+ * Invisible : L'utilisateur peut continuer à écrire ou scroller en haut, les nouveaux messages se glissent discrètement en bas de la pile.
+ * Ultra-léger : Le CPU du téléphone ne travaille que sur 1 ou 2 nouveaux messages au lieu de recalculer 200 messages à chaque fois.
+ * Aucun clignotement : Comme on ne fait pas de .innerHTML = '', l'écran ne devient jamais blanc, même pendant une milliseconde.
