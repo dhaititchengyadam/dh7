@@ -1,0 +1,36 @@
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const filename = url.pathname.slice(1);
+
+    if (request.method !== "PUT" && request.method !== "POST") {
+      return new Response("Method Not Allowed", { status: 405 });
+    }
+
+    if (!filename) {
+      return new Response("Filename Required", { status: 400 });
+    }
+
+    try {
+      await env.adamdhaiti.put(filename, request.body, {
+        httpMetadata: {
+          contentType: request.headers.get("Content-Type") || "application/octet-stream",
+        },
+      });
+
+      return new Response(`https://pub-f5ae73a6ce0f4d0ba225458c1a10d89c.r2.dev/${filename}`, {
+        status: 200,
+        headers: { 
+          "Access-Control-Allow-Origin": "*" 
+        }
+      });
+
+    } catch (e) {
+      return new Response(e.message, { status: 500 });
+    }
+  }
+};
+
+
+
+https://url.tergenedhaiti.workers.dev/
