@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>D'H7 | Digital Hub 7</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --bg-pure: #000000;
+            --bg-card: #0a0a0a;
+            --bg-input: #1c1c1e;
+            --accent: #007aff;
+            --border: #1a1a1a;
+            --text-dim: #8e8e93;
+            --msg-me: #007aff;
+            --msg-them: #262628;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* FIX SCROLL ANDROID/IOS */
+        html, body {
+            height: 100%;
+            width: 100%;
+            background-color: var(--bg-pure);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Empêche le rebond global */
+        }
+
+        .screen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-pure);
+            z-index: 10;
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.2s;
+            visibility: hidden;
+        }
+
+        .screen.active {
+            visibility: visible;
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .screen.hidden-right { transform: translateX(100%); }
+        .screen.hidden-left { transform: translateX(-30%); opacity: 0; }
+
+        /* SCROLLABLE AREA */
+        .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+        }
+        
+        .scroll-area::-webkit-scrollbar { display: none; }
+
+        /* HEADER */
+        .ios-header {
+            flex-shrink: 0;
+            padding: env(safe-area-inset-top) 1rem 0.8rem 1rem;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 0.5px solid var(--border);
+            z-index: 30;
+        }
+
+        /* CHAT BUBBLES */
+        .bubble {
+            max-width: 85%;
+            padding: 8px 12px;
+            margin: 4px 12px;
+            font-size: 0.95rem;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+        }
+        .bubble.me {
+            align-self: flex-end;
+            background-color: var(--msg-me);
+            border-bottom-right-radius: 4px;
+        }
+        .bubble.them {
+            align-self: flex-start;
+            background-color: var(--msg-them);
+            border-bottom-left-radius: 4px;
+        }
+
+        /* INPUT AREA */
+        .input-area {
+            flex-shrink: 0;
+            padding: 8px 8px calc(8px + env(safe-area-inset-bottom)) 8px;
+            background: var(--bg-pure);
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            border-top: 0.5px solid var(--border);
+        }
+
+        .input-wrapper {
+            flex: 1;
+            background: var(--bg-input);
+            border-radius: 22px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: white;
+            outline: none;
+            font-size: 1rem;
+            max-height: 120px;
+            resize: none;
+        }
+
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
+        }
+        
+        .action-btn:active { transform: scale(0.9); }
+
+        /* ANIMATIONS */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .msg-anim { animation: slideIn 0.2s ease-out; }
+    </style>
+</head>
+<body>
+
+    <section id="scr-auth" class="screen active justify-center p-8">
+        <div class="text-center">
+            <h1 class="text-6xl font-black italic mb-2">D'H7</h1>
+            <p class="text-zinc-500 text-[10px] tracking-[0.5em] mb-12">DIGITAL HUB 7</p>
+            
+            <div id="login-form" class="space-y-4 max-w-xs mx-auto">
+                <input type="text" id="login-id" placeholder="TFID oswa DH7" class="w-full bg-zinc-900 p-4 rounded-2xl outline-none">
+                <input type="password" id="login-pass" placeholder="Modpas" class="w-full bg-zinc-900 p-4 rounded-2xl outline-none">
+                <button onclick="login()" class="w-full bg-white text-black font-bold py-4 rounded-2xl">LOG IN</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="scr-home" class="screen hidden-right">
+        <header class="ios-header flex justify-between items-end">
+            <h2 class="text-3xl font-black">Mesaj</h2>
+            <div class="flex gap-4">
+                <i class="fa-solid fa-magnifying-glass text-xl" onclick="navTo('scr-search')"></i>
+                <i class="fa-solid fa-ellipsis text-xl" onclick="navTo('scr-menu')"></i>
+            </div>
+        </header>
+        <div id="contact-list" class="scroll-area">
+            </div>
+    </section>
+
+    <section id="scr-chat" class="screen hidden-right">
+        <header class="ios-header flex items-center gap-3">
+            <i class="fa-solid fa-chevron-left text-2xl" onclick="navTo('scr-home')"></i>
+            <div class="flex-1 overflow-hidden">
+                <h3 id="chat-peer-name" class="font-bold truncate">---</h3>
+                <p id="chat-peer-status" class="text-[10px] text-zinc-500 uppercase tracking-tighter">Online</p>
+            </div>
+        </header>
+
+        <div id="chat-scroll-area" class="scroll-area flex flex-col">
+            <div id="chat-messages" class="flex flex-col py-4"></div>
+        </div>
+
+        <div class="input-area">
+            <div class="input-wrapper">
+                <textarea id="msg-input" placeholder="Mesaj..." rows="1" oninput="handleInput(this)"></textarea>
+            </div>
+            <div id="action-btn" class="action-btn" onclick="handleAction()">
+                <i id="action-icon" class="fa-solid fa-microphone text-white"></i>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const API = "https://dh7.adamdh7.org";
+        let user = JSON.parse(localStorage.getItem('dh7_session')) || null;
+        let activePeer = null;
+        let syncInterval = null;
+        let displayedMsgIds = new Set();
+
+        // NAVIGATION PROPRE
+        function navTo(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const target = document.getElementById(screenId);
+            target.classList.add('active');
+            
+            if (screenId !== 'scr-chat') {
+                clearInterval(syncInterval);
+                activePeer = null;
+            }
+        }
+
+        // AUTO-RESIZE TEXTAREA
+        function handleInput(el) {
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+            const icon = document.getElementById('action-icon');
+            if (el.value.trim().length > 0) {
+                icon.className = "fa-solid fa-paper-plane";
+            } else {
+                icon.className = "fa-solid fa-microphone";
+            }
+        }
+
+        // LOGIN SIMPLE
+        async function login() {
+            const id = document.getElementById('login-id').value;
+            const pass = document.getElementById('login-pass').value;
+            // Appel API simulé ici pour l'exemple
+            // ... après succès :
+            // localStorage.setItem('dh7_session', JSON.stringify(data.user));
+            navTo('scr-home');
+        }
+
+        // OPEN CHAT
+        function openChat(peer) {
+            activePeer = peer;
+            document.getElementById('chat-peer-name').innerText = peer.nom;
+            displayedMsgIds.clear();
+            document.getElementById('chat-messages').innerHTML = '';
+            navTo('scr-chat');
+            syncChat();
+            syncInterval = setInterval(syncChat, 3000);
+        }
+
+        // SYNC CHAT AMÉLIORÉ (SANS BUG DE SCROLL)
+        async function syncChat() {
+            if (!activePeer || !user) return;
+            try {
+                const res = await fetch(`${API}/messages`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user1_tfid: user.tfid, user2_tfid: activePeer.tfid })
+                });
+                const messages = await res.json();
+                const container = document.getElementById('chat-messages');
+                const scrollArea = document.getElementById('chat-scroll-area');
+                
+                let hasNew = false;
+                messages.forEach(m => {
+                    const mId = m.time + m.from;
+                    if (!displayedMsgIds.has(mId) && m.text !== 'ok') {
+                        appendMessage(m);
+                        displayedMsgIds.add(mId);
+                        hasNew = true;
+                    }
+                });
+
+                if (hasNew) {
+                    scrollArea.scrollTop = scrollArea.scrollHeight;
+                }
+            } catch (e) { console.error("Sync error"); }
+        }
+
+        function appendMessage(m) {
+            const container = document.getElementById('chat-messages');
+            const isMe = m.from === user.tfid;
+            const div = document.createElement('div');
+            div.className = `bubble ${isMe ? 'me' : 'them'} msg-anim`;
+            div.innerText = m.text;
+            container.appendChild(div);
+        }
+
+        async function handleAction() {
+            const input = document.getElementById('msg-input');
+            const text = input.value.trim();
+            if (text === "") {
+                // Ici tu peux ajouter la logique d'enregistrement vocal
+                return;
+            }
+            
+            // Envoi du message
+            input.value = "";
+            input.style.height = 'auto';
+            document.getElementById('action-icon').className = "fa-solid fa-microphone";
+            
+            await fetch(`${API}/send`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    sender_tfid: user.tfid,
+                    receiver_tfid: activePeer.tfid,
+                    message: text
+                })
+            });
+            syncChat();
+        }
+
+        // Initialisation
+        if (user) navTo('scr-home');
+    </script>
+</body>
+</html>
