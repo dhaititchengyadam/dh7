@@ -1983,7 +1983,7 @@
             while (attempts < maxAttempts) {
                 try {
                     const uniqueName = `${crypto.randomUUID()}_${filename}`;
-                    const uploadRes = await fetch(`${UPLOAD_URL}${uniqueName}`, {
+                    const uploadRes = await fetch(`${UPLOAD_URL}/${uniqueName}`, {
                         method: 'PUT',
                         headers: {'Content-Type': type},
                         body: file
