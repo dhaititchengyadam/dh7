@@ -63,7 +63,7 @@
             user-select: none;
         }
 
-        /* 1. SCROLL PARFAIT (Native iOS feel, fixed for Android) */
+        /* 1. SCROLL PARFAIT (Native iOS feel, enhanced for Android) */
         .scroll-container {
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
@@ -502,7 +502,7 @@
             background: rgba(255,255,255,0.1);
             border-radius: 8px;
             padding: 8px;
-            width: auto; /* Changed to auto for same size as text */
+            width: 200px; /* Shrunk width */
         }
         .play-pause {
             cursor: pointer;
@@ -772,8 +772,7 @@
                 "image-message": "Imaj",
                 "voice-message": "Mesaj vwa",
                 "file-message": "Fichye",
-                "loading": "Patiyans tanpri...",
-                "upload_failed": "Echèk upload apre plizyè esè"
+                "loading": "Patiyans tanpri..."
             },
             fr: {
                 logo: "D'H7",
@@ -805,8 +804,7 @@
                 "image-message": "Image",
                 "voice-message": "Message vocal",
                 "file-message": "Fichier",
-                "loading": "Patientez s'il vous plaît...",
-                "upload_failed": "Échec de l'upload après plusieurs tentatives"
+                "loading": "Patientez s'il vous plaît..."
             },
             en: {
                 logo: "D'H7",
@@ -838,8 +836,7 @@
                 "image-message": "Image",
                 "voice-message": "Voice Message",
                 "file-message": "File",
-                "loading": "Please wait...",
-                "upload_failed": "Upload failed after several attempts"
+                "loading": "Please wait..."
             },
             es: {
                 logo: "D'H7",
@@ -871,8 +868,7 @@
                 "image-message": "Imagen",
                 "voice-message": "Mensaje de voz",
                 "file-message": "Archivo",
-                "loading": "Por favor espere...",
-                "upload_failed": "Fallo de carga después de varios intentos"
+                "loading": "Por favor espere..."
             }
         };
 
@@ -1055,7 +1051,7 @@
             } else if (path.startsWith('/TF-')) {
                 const tfid = path.slice(1);
                 navTo('scr-chat', tfid);
-            } else if (path.startsWith('/cherche')) {
+            } else if (path === '/cherche') {
                 navTo('scr-search');
             } else if (path === '/menu') {
                 navTo('scr-menu');
@@ -1737,7 +1733,7 @@
                 });
 
                 audio.addEventListener('loadedmetadata', () => {
-                    timeDisplay.textContent = formatTime(audio.duration);
+                    timeDisplay.textContent = '0:00';
                 });
 
                 audio.addEventListener('ended', () => {
@@ -1745,7 +1741,7 @@
                     playPause.innerHTML = '<path d="M8 5v14l11-7z"/>';
                     progressFill.style.width = '0%';
                     seeker.style.left = '0%';
-                    timeDisplay.textContent = formatTime(audio.duration);
+                    timeDisplay.textContent = '0:00';
                 });
 
                 progressBar.addEventListener('touchstart', startSeek);
@@ -1984,7 +1980,7 @@
 
         async function uploadFile(file, filename, type) {
             let attempts = 0;
-            const maxAttempts = 5;
+            const maxAttempts = 5; // Increased retries
             while (attempts < maxAttempts) {
                 try {
                     const uniqueName = `${crypto.randomUUID()}_${filename}`;
@@ -2011,8 +2007,9 @@
                     console.error(e);
                     attempts++;
                 }
+                await new Promise(resolve => setTimeout(resolve, 1000 * attempts)); // Exponential backoff
             }
-            alert(translations[currentLanguage]["upload_failed"]);
+            alert("Échec de l'upload après plusieurs tentatives. Eseye ankò pita.");
         }
 
         // --- SEND API ---
