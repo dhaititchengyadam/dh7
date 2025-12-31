@@ -502,7 +502,7 @@
             background: rgba(255,255,255,0.1);
             border-radius: 8px;
             padding: 8px;
-            width: 150px; /* Shrunk width */
+            width: auto; /* Changed to auto for same size as text */
         }
         .play-pause {
             cursor: pointer;
@@ -621,7 +621,7 @@
             </button>
             <div class="flex-1 min-w-0">
                 <h3 id="chat-peer-name" class="font-bold text-lg leading-none truncate">---</h3>
-                <p id="chat-peer-tfid" class="text-[10px] text-zinc-500 mt-1 tracking-widest uppercase truncate copyable" onclick="copyToClipboard(this.innerText)">---</p>
+                <p id="chat-peer-tfid" class="text-[10px] text-zinc-500 font-mono mt-1 tracking-widest uppercase truncate copyable" onclick="copyToClipboard(this.innerText)">---</p>
             </div>
         </header>
 
@@ -1530,8 +1530,13 @@
         }
 
         function scrollToBottom() {
-            const d = document.getElementById('chat-messages');
-            d.scrollTo({ top: d.scrollHeight, behavior: 'smooth' });
+            const container = document.getElementById('chat-messages');
+            if (container) {
+                container.scrollTo({
+                    top: container.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
         }
 
         function getMainMessage(text) {
@@ -1983,7 +1988,7 @@
             while (attempts < maxAttempts) {
                 try {
                     const uniqueName = `${crypto.randomUUID()}_${filename}`;
-                    const uploadRes = await fetch(`${UPLOAD_URL}/${uniqueName}`, {
+                    const uploadRes = await fetch(`${UPLOAD_URL}${uniqueName}`, {
                         method: 'PUT',
                         headers: {'Content-Type': type},
                         body: file
