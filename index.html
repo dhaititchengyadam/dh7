@@ -1294,7 +1294,7 @@
             document.getElementById('chat-peer-tfid').innerText = peer.tfid;
             navTo('scr-chat');
             resetChatView();
-            syncChatSilently();
+            await loadInitialMessages(); // Load all existing at once
             try {
                 const msgsRes = await fetch(`${API}/messages`, {
                     method: 'POST',
@@ -1323,13 +1323,7 @@
             setupScrollListener();
         }
 
-        function resetChatView() {
-            displayedMessageIds.clear(); // Vide le stockage local de la session
-            document.getElementById('chat-messages').innerHTML = ''; // Vide l'écran
-            // currentChatMessages = []; // Commenté si non utilisé
-        }
-
-        async function syncChatSilently() {
+        async function loadInitialMessages() {
             if (!activePeer || !user) return;
 
             try {
@@ -1342,45 +1336,31 @@
                 const messages = await res.json();
                 const container = document.getElementById('chat-messages');
                 
-                // On filtre uniquement les messages qui ne sont pas "ok" 
-                // ET qui qui n'ont pas encore été affichés (ceux qui n'existent pas dans notre Set)
-                const newMessages = messages.filter(m => {
-                    const msgId = m.time + m.from; // Identifiant unique basé sur temps + expéditeur
-                    return m.text !== 'ok' && !displayedMessageIds.has(msgId);
-                });
+                // Filter non-'ok' messages
+                const validMessages = messages.filter(m => m.text !== 'ok');
 
-                if (newMessages.length > 0) {
-                    // Détecter si l'utilisateur est en train de lire en haut
-                    const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 150;
-
-                    newMessages.forEach(m => {
+                if (validMessages.length > 0) {
+                    const fragment = document.createDocumentFragment();
+                    validMessages.forEach(m => {
                         const msgId = m.time + m.from;
-                        displayedMessageIds.add(msgId); // On le marque comme "existant"
-                        
-                        // On l'ajoute au DOM tout en bas
-                        appendMessageToDOM(m);
+                        displayedMessageIds.add(msgId);
+                        const div = createMessageElement(m);
+                        fragment.appendChild(div);
                     });
-
-                    // On ne scrolle que si l'utilisateur n'est pas en train de remonter le chat
-                    if (isAtBottom) {
-                        scrollToBottom();
-                    }
+                    container.appendChild(fragment);
+                    scrollToBottom();
+                    updateCheckmarks(messages);
+                    attachVoicePlayers();
                 }
-                
-                // Mise à jour des status (Checkmarks) sans toucher au texte
-                updateCheckmarks(messages);
-
             } catch (e) {
-                // En silence total
+                console.error(e);
             }
         }
 
-        function appendMessageToDOM(m) {
-            const container = document.getElementById('chat-messages');
+        function createMessageElement(m) {
             const isMe = m.from === user.tfid;
-            
             const div = document.createElement('div');
-            div.className = `bubble ${isMe ? 'me' : 'them'} animate-slide-in`; // Ajoute une petite animation
+            div.className = `bubble ${isMe ? 'me' : 'them'}`;
             div.id = `msg-${m.time.replace(/[^a-zA-Z0-9]/g, '-')}`;
             
             let text = m.text;
@@ -1429,8 +1409,64 @@
             }
 
             addMessageListeners(div, text);
-            container.appendChild(div);
-            attachVoicePlayers(); // Re-attach for new voices
+            return div;
+        }
+
+        async function syncChatSilently() {
+            if (!activePeer || !user) return;
+
+            try {
+                const res = await fetch(`${API}/messages`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user1_tfid: user.tfid, user2_tfid: activePeer.tfid })
+                });
+                
+                const messages = await res.json();
+                const container = document.getElementById('chat-messages');
+                
+                // On filtre uniquement les messages qui ne sont pas "ok" 
+                // ET qui n'ont pas encore été affichés (ceux qui n'existent pas dans notre Set)
+                const newMessages = messages.filter(m => {
+                    const msgId = m.time + m.from; // Identifiant unique basé sur temps + expéditeur
+                    return m.text !== 'ok' && !displayedMessageIds.has(msgId);
+                });
+
+                if (newMessages.length > 0) {
+                    // Détecter si l'utilisateur est en train de lire en haut
+                    const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 150;
+
+                    const fragment = document.createDocumentFragment();
+                    newMessages.forEach(m => {
+                        const msgId = m.time + m.from;
+                        displayedMessageIds.add(msgId); // On le marque comme "existant"
+                        
+                        // Create element and add to fragment
+                        const div = createMessageElement(m);
+                        div.classList.add('animate-slide-in'); // Animation only for new
+                        fragment.appendChild(div);
+                    });
+                    container.appendChild(fragment);
+
+                    // On ne scrolle que si l'utilisateur n'est pas en train de remonter le chat
+                    if (isAtBottom) {
+                        scrollToBottom();
+                    }
+                    attachVoicePlayers();
+                }
+                
+                // Mise à jour des status (Checkmarks) sans toucher au texte
+                updateCheckmarks(messages);
+
+            } catch (e) {
+                // En silence total
+            }
+        }
+
+        function resetChatView() {
+            displayedMessageIds.clear(); // Vide le stockage local de la session
+            document.getElementById('chat-messages').innerHTML = ''; // Vide l'écran
+            // currentChatMessages = []; // Commenté si non utilisé
         }
 
         function renderReplyPreview(quoted) {
@@ -1623,20 +1659,20 @@
         // --- CORE: MEDIA RENDERING & UTILS ---
         
         function renderText(text) {
-            // 1. Détection Fichier (Base64 ou URL)
-            // Pour cet exemple, on détecte les extensions ou les headers data:
-            
-            // Image
-            if(text.match(/\.(jpeg|jpg|gif|png)$/i) || text.startsWith('data:image')) {
-                return `<div class="media-content" onclick="openFullscreen(this)"><img src="${text}" loading="lazy" /></div>`;
-            }
-            // Video
-            if(text.match(/\.(mp4|mov|avi|mkv)$/i) || text.startsWith('data:video')) {
-                return `<div class="media-content"><video src="${text}" controls playsinline></video></div>`;
-            }
-            // Audio
-            if(text.match(/\.(mp3|wav|ogg)$/i) || text.startsWith('data:audio')) {
-                return `<div class="w-full min-w-[200px]"><audio src="${text}" controls class="w-full h-8"></audio></div>`;
+            // Détection URL from workers.dev
+            if (text.startsWith(PUBLIC_URL)) {
+                const filename = text.split('/').pop();
+                const ext = filename.split('.').pop().toLowerCase();
+                if (['jpeg','jpg','gif','png','heic'].includes(ext)) {
+                    return `<div class="media-content" onclick="openFullscreen('${text}', 'image')"><img src="${text}" loading="lazy" alt="${filename}" onerror="this.onerror=null; this.src=''; this.alt='${translations[currentLanguage]["loading"]}';" /></div>`;
+                } else if (['mp4','mov','avi','mkv','hevc'].includes(ext)) {
+                    return `<div class="media-content" onclick="openFullscreen('${text}', 'video')"><video src="${text}" playsinline muted preload="metadata" poster="${text}#t=0.1" onerror="this.onerror=null; this.poster=''; this.alt='${translations[currentLanguage]["loading"]}';"></video></div>`;
+                } else if (['mp3','wav','ogg','aac','m4a'].includes(ext)) {
+                    return renderCustomVoicePlayer(text);
+                } else {
+                    // Autres fichiers: afficher nom et lien
+                    return `<div class="file-preview" onclick="openFileInNewTab('${text}')"><i class="fa-solid fa-file file-icon"></i><span class="file-link">${filename}</span></div>`;
+                }
             }
             
             // Liens URL standards
@@ -1644,11 +1680,162 @@
             return text.replace(urlRegex, '<a href="$1" target="_blank" class="underline text-blue-300">$1</a>');
         }
 
-        function openFullscreen(el) {
-            const src = el.querySelector('img').src;
+        function renderCustomVoicePlayer(src) {
+            const playerId = `voice-${Math.random().toString(36).substr(2,9)}`;
+            return `
+                <div class="voice-player" data-src="${src}" id="${playerId}">
+                    <svg class="play-pause" viewBox="0 0 24 24" fill="white">
+                        <path d="M8 5v14l11-7z"/> <!-- Play -->
+                    </svg>
+                    <div class="progress-bar">
+                        <div class="wave-form">
+                            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                        </div>
+                        <div class="progress-fill"></div>
+                        <div class="seeker" style="left: 0%;"></div>
+                    </div>
+                    <span class="time-display">0:00</span>
+                </div>
+            `;
+        }
+
+        function attachVoicePlayers() {
+            document.querySelectorAll('.voice-player:not(.attached)').forEach(player => {
+                player.classList.add('attached');
+                const audio = new Audio(player.dataset.src);
+                const playPause = player.querySelector('.play-pause');
+                const progressBar = player.querySelector('.progress-bar');
+                const progressFill = player.querySelector('.progress-fill');
+                const seeker = player.querySelector('.seeker');
+                const timeDisplay = player.querySelector('.time-display');
+                let isPlaying = false;
+                let isSeeking = false;
+
+                playPause.addEventListener('click', () => {
+                    if (isPlaying) {
+                        audio.pause();
+                        playPause.innerHTML = '<path d="M8 5v14l11-7z"/>';
+                    } else {
+                        audio.play();
+                        playPause.innerHTML = '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';
+                    }
+                    isPlaying = !isPlaying;
+                });
+
+                audio.addEventListener('timeupdate', () => {
+                    if (!isSeeking) {
+                        const progress = (audio.currentTime / audio.duration) * 100;
+                        progressFill.style.width = `${progress}%`;
+                        seeker.style.left = `${progress}%`;
+                        timeDisplay.textContent = formatTime(audio.currentTime);
+                    }
+                });
+
+                audio.addEventListener('loadedmetadata', () => {
+                    timeDisplay.textContent = formatTime(audio.duration);
+                });
+
+                audio.addEventListener('ended', () => {
+                    isPlaying = false;
+                    playPause.innerHTML = '<path d="M8 5v14l11-7z"/>';
+                    progressFill.style.width = '0%';
+                    seeker.style.left = '0%';
+                    timeDisplay.textContent = formatTime(audio.duration);
+                });
+
+                progressBar.addEventListener('touchstart', startSeek);
+                progressBar.addEventListener('mousedown', startSeek);
+
+                function startSeek(e) {
+                    isSeeking = true;
+                    seek(e);
+                    const moveEvent = 'ontouchstart' in window ? 'touchmove' : 'mousemove';
+                    const endEvent = 'ontouchstart' in window ? 'touchend' : 'mouseup';
+                    document.addEventListener(moveEvent, seek);
+                    document.addEventListener(endEvent, endSeek);
+                }
+
+                function seek(e) {
+                    const touch = e.touches ? e.touches[0] : e;
+                    const rect = progressBar.getBoundingClientRect();
+                    const x = touch.clientX - rect.left;
+                    const progress = Math.min(1, Math.max(0, x / rect.width));
+                    progressFill.style.width = `${progress * 100}%`;
+                    seeker.style.left = `${progress * 100}%`;
+                    audio.currentTime = progress * audio.duration;
+                }
+
+                function endSeek() {
+                    isSeeking = false;
+                    const moveEvent = 'ontouchstart' in window ? 'touchmove' : 'mousemove';
+                    const endEvent = 'ontouchstart' in window ? 'touchend' : 'mouseup';
+                    document.removeEventListener(moveEvent, seek);
+                    document.removeEventListener(endEvent, endSeek);
+                    if (isPlaying) audio.play();
+                }
+
+                function formatTime(seconds) {
+                    const m = Math.floor(seconds / 60);
+                    const s = Math.floor(seconds % 60);
+                    return `${m}:${s < 10 ? '0' : ''}${s}`;
+                }
+            });
+        }
+
+        function openFullscreen(dataUrl, type) {
             const fs = document.getElementById('fs-media');
-            fs.innerHTML = `<img src="${src}" />`;
+            let content = '';
+            if (type === 'image') {
+                content = `<img src="${dataUrl}" alt="Fullscreen Image" id="zoom-img" />`;
+            } else if (type === 'video') {
+                content = `<video src="${dataUrl}" controls autoplay playsinline loop></video>`;
+            } else if (type === 'audio') {
+                content = `<audio src="${dataUrl}" controls autoplay></audio>`;
+            }
+            fs.innerHTML = content + `<svg class="fullscreen-close w-8 h-8" onclick="closeFullscreen()" fill="none" stroke="white" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>`;
             fs.classList.remove('hidden');
+            history.pushState({ screen: type === 'video' ? 'scr-video' : 'scr-photo' }, '', `/${type === 'video' ? 'videyo' : 'foto'}`);
+            if (type === 'image') {
+                enablePinchZoom();
+            }
+        }
+
+        function enablePinchZoom() {
+            const img = document.getElementById('zoom-img');
+            let scale = 1;
+            let initialScale = 1;
+            let initialDistance = 0;
+            const fs = document.getElementById('fs-media');
+            fs.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    initialDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                    initialScale = scale;
+                    e.preventDefault();
+                }
+            });
+            fs.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                    scale = initialScale * (dist / initialDistance);
+                    img.style.transform = `scale(${scale})`;
+                    e.preventDefault();
+                }
+            });
+        }
+
+        function closeFullscreen() {
+            const fs = document.getElementById('fs-media');
+            fs.classList.add('hidden');
+            fs.innerHTML = '';
+            history.back();
+        }
+
+        function openFileInNewTab(dataUrl) {
+            const newTab = window.open();
+            newTab.document.write('<iframe src="' + dataUrl + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>');
         }
 
         // --- INPUT & SENDING LOGIC ---
@@ -1663,19 +1850,21 @@
         // Gestion Bouton Dynamique (Micro vs Send)
         function initActionBtn() {
             const btn = document.getElementById('action-btn');
+            if (!btn) return;
             const icon = document.getElementById('action-icon');
             const input = document.getElementById('msg-input');
 
             // MOUSE / TOUCH EVENTS pour l'enregistrement
             btn.addEventListener('mousedown', startRecording);
-            btn.addEventListener('touchstart', startRecording);
+            btn.addEventListener('touchstart', startRecording, { passive: true });
             
             btn.addEventListener('mouseup', endRecordingOrSend);
-            btn.addEventListener('touchend', endRecordingOrSend);
+            btn.addEventListener('touchend', endRecordingOrSend, { passive: true });
         }
 
         function updateActionButton() {
             const input = document.getElementById('msg-input');
+            if (!input) return;
             const btn = document.getElementById('action-btn');
             const icon = document.getElementById('action-icon');
             
@@ -1694,7 +1883,7 @@
         let longPressTimer;
         let isRecording = false;
 
-        function startRecording(e) {
+        async function startRecording(e) {
             const input = document.getElementById('msg-input');
             if(input.value.trim().length > 0) return; // Si texte, ignorer le micro
 
@@ -1720,7 +1909,7 @@
             }, 300); // 300ms long press
         }
 
-        function endRecordingOrSend(e) {
+        async function endRecordingOrSend(e) {
             clearTimeout(longPressTimer);
             const input = document.getElementById('msg-input');
             
@@ -1739,13 +1928,14 @@
                 
                 if(mediaRecorder && mediaRecorder.state !== 'inactive') {
                     mediaRecorder.stop();
-                    mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' }); // ou webm
-                        const reader = new FileReader();
-                        reader.readAsDataURL(audioBlob);
-                        reader.onloadend = () => {
-                            sendMedia(reader.result, "Audio Message");
-                        };
+                    mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                        document.getElementById('upload-loading').classList.remove('hidden');
+                        try {
+                            await uploadFile(audioBlob, `voice_${Date.now()}.mp3`, 'audio/mp3');
+                        } finally {
+                            document.getElementById('upload-loading').classList.add('hidden');
+                        }
                     };
                 }
             } else {
@@ -1775,34 +1965,53 @@
         function stopTimer() { clearInterval(recordTimerInterval); document.getElementById('rec-timer').innerText = "0:00"; }
 
         // --- FILE ATTACHMENT ---
-        function handleFileSelect(input) {
+        async function handleFileSelect(input) {
             const file = input.files[0];
             if(!file) return;
             
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64 = e.target.result;
-                sendMedia(base64, file.name);
-            };
-            reader.readAsDataURL(file);
-            input.value = ""; // Reset
+            document.getElementById('upload-loading').classList.remove('hidden');
+            try {
+                await uploadFile(file, file.name, file.type);
+            } finally {
+                document.getElementById('upload-loading').classList.add('hidden');
+            }
+            input.value = "";
+        }
+
+        async function uploadFile(file, filename, type) {
+            let attempts = 0;
+            const maxAttempts = 3; // Increased to 3
+            while (attempts < maxAttempts) {
+                try {
+                    const uniqueName = `${crypto.randomUUID()}_${filename}`;
+                    const uploadRes = await fetch(`${UPLOAD_URL}${uniqueName}`, {
+                        method: 'PUT',
+                        headers: {'Content-Type': type},
+                        body: file
+                    });
+                    if (uploadRes.ok) {
+                        const url = await uploadRes.text();
+                        let content = url;
+                        if (replyingTo) {
+                            content = REPLY_START + replyingTo.id + REPLY_END + replyingTo.sender + REPLY_END + replyingTo.quoted + REPLY_END + '\n\n' + url;
+                            replyingTo = null;
+                            cancelReply();
+                        }
+                        await postData(content);
+                        syncChatSilently();
+                        return;
+                    } else {
+                        attempts++;
+                    }
+                } catch(e) {
+                    console.error(e);
+                    attempts++;
+                }
+            }
+            alert("Échec de l'upload après plusieurs tentatives");
         }
 
         // --- SEND API ---
-        async function sendMessage() {
-            const input = document.getElementById('msg-input');
-            const text = input.value.trim();
-            if(!text) return;
-            
-            // Reset UI
-            input.value = '';
-            input.style.height = 'auto';
-            updateActionButton();
-            
-            await postData(text);
-            syncChatSilently();
-        }
-
         async function sendMedia(base64Data, filename) {
             // Dans ce système simplifié, on envoie le base64 comme texte.
             // Le rendu sera géré par renderText().
