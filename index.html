@@ -1,3 +1,214 @@
+     method: 'PUT',
+                        headers: {'Content-Type': type},
+                        body: file
+                    });
+                    if (uploadRes.ok) {
+                        const url = await uploadRes.text();
+                        let content = url;
+                        if (replyingTo) {
+                            content = REPLY_START + replyingTo.id + REPLY_END + replyingTo.sender + REPLY_END + replyingTo.quoted + REPLY_END + '\n\n' + url;
+                            replyingTo = null;
+                            cancelReply();
+                        }
+                        await postData(content);
+                        syncChatSilently();
+                        return;
+                    } else {
+                        attempts++;
+                    }
+                } catch(e) {
+                    console.error(e);
+                    attempts++;
+                }
+            }
+            alert(translations[currentLanguage]["upload_failed"]);
+        }
+
+        // --- SEND API ---
+        async function sendMedia(base64Data, filename) {
+            // Dans ce système simplifié, on envoie le base64 comme texte.
+            // Le rendu sera géré par renderText().
+            await postData(base64Data);
+            syncChatSilently();
+        }
+
+        async function postData(content) {
+            try {
+                await fetch(`${API}/send`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        sender_tfid: user.tfid,
+                        receiver_tfid: activePeer.tfid,
+                        message: content
+                    })
+                });
+            } catch(e) { console.error("Send failed", e); }
+        }
+
+        // --- UI OVERLAYS ---
+        function showLang() {
+            document.getElementById('backdrop').classList.add('show');
+            document.getElementById('lang-sheet').classList.add('show');
+        }
+        function closeOverlays() {
+            document.getElementById('backdrop').classList.remove('show');
+            document.getElementById('lang-sheet').classList.remove('show');
+        }
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('language', lang);
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.dataset.key;
+                if (translations[lang][key]) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.placeholder = translations[lang][key];
+                    } else {
+                        el.innerText = translations[lang][key];
+                    }
+                }
+            });
+            closeOverlays();
+            if (document.querySelector('.no-contacts')) {
+                document.querySelector('.no-contacts').textContent = translations[lang].no_contacts;
+            }
+        }
+
+        let currentText = '';
+        function showCopyMenu(x, y, text) {
+            currentText = text;
+            const menu = document.getElementById('copy-menu');
+            menu.style.left = `${x - 40}px`;
+            menu.style.top = `${y + 10}px`;
+            menu.classList.remove('hidden');
+            document.getElementById('copy-btn').innerText = translations[currentLanguage].copy;
+            document.getElementById('reply-btn').innerText = translations[currentLanguage].reply;
+            document.getElementById('copy-btn').onclick = () => {
+                copyToClipboard(text);
+                hideCopyMenu();
+            };
+            document.getElementById('reply-btn').onclick = () => {
+                replyToMessage(text, document.getElementById('chat-messages').lastChild.classList.contains('me') ? translations[currentLanguage].you : document.getElementById('chat-peer-name').innerText);
+                hideCopyMenu();
+            };
+            document.addEventListener('touchstart', handleOutsideTouch);
+            document.addEventListener('mousedown', handleOutsideTouch);
+        }
+
+        function hideCopyMenu() {
+            document.getElementById('copy-menu').classList.add('hidden');
+            document.removeEventListener('touchstart', handleOutsideTouch);
+            document.removeEventListener('mousedown', handleOutsideTouch);
+        }
+
+        function handleOutsideTouch(e) {
+            if (!document.getElementById('copy-menu').contains(e.target)) {
+                hideCopyMenu();
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full';
+                toast.textContent = translations[currentLanguage].copied;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 1500);
+            }).catch(e => console.error(e));
+        }
+
+        function addLongPressListeners(element, longPressCallback, shortPressCallback = null) {
+            let longPressTimer;
+            let isLongPress = false;
+            let startX, startY;
+            let isTouch = false;
+
+            const start = (e) => {
+                isTouch = e.type === 'touchstart';
+                const pos = isTouch ? e.touches[0] : e;
+                startX = pos.clientX;
+                startY = pos.clientY;
+                isLongPress = false;
+                longPressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    longPressCallback(startX, startY);
+                }, 500);
+            };
+
+            const end = (e) => {
+                clearTimeout(longPressTimer);
+                if (!isLongPress && shortPressCallback) {
+                    shortPressCallback();
+                }
+            };
+
+            const move = (e) => {
+                const pos = isTouch ? e.touches[0] : e;
+                if (Math.abs(pos.clientX - startX) > 10 || Math.abs(pos.clientY - startY) > 10) {
+                    clearTimeout(longPressTimer);
+                }
+            };
+
+            element.addEventListener('touchstart', start, { passive: true });
+            element.addEventListener('touchend', end, { passive: true });
+            element.addEventListener('touchmove', move, { passive: true });
+            element.addEventListener('mousedown', start);
+            element.addEventListener('mouseup', end);
+            element.addEventListener('mousemove', move);
+            element.addEventListener('mouseleave', () => clearTimeout(longPressTimer));
+        }
+
+        async function showContactPreview(peer) {
+            if (!peer) return;
+            document.getElementById('preview-overlay').classList.remove('hidden');
+            const preview = document.getElementById('contact-preview');
+            preview.classList.remove('hidden');
+            preview.innerHTML = `
+                <h3 class="font-bold text-lg mb-1">${peer.prenom} ${peer.nom}</h3>
+                <p class="text-[10px] text-zinc-500 mb-4 copyable" onclick="copyToClipboard('\( {peer.tfid}')"> \){peer.tfid}</p>
+                <div class="mini-chat"></div>
+            `;
+            try {
+                const res = await fetch(`${API}/messages`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user1_tfid: user.tfid, user2_tfid: peer.tfid })
+                });
+                if (!res.ok) throw new Error('Failed to fetch messages');
+                const messages = await res.json();
+                const msgDiv = preview.querySelector('.mini-chat');
+                const last7 = messages.filter(m => m.text !== 'ok').slice(-7);
+                last7.forEach(m => {
+                    const isMe = m.from === user.tfid;
+                    const div = document.createElement('div');
+                    div.className = `mini-bubble ${isMe ? 'me' : 'them'}`;
+                    div.innerText = getMainMessage(m.text);
+                    msgDiv.appendChild(div);
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function hideContactPreview() {
+            document.getElementById('preview-overlay').classList.add('hidden');
+            const preview = document.getElementById('contact-preview');
+            preview.classList.add('hidden');
+            preview.innerHTML = '';
+        }
+
+        document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+        document.addEventListener('touchmove', function (e) { if (e.scale !== 1) { e.preventDefault(); } } , { passive: false });
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    console.log('Service Worker registered');
+                }).catch(function(err) {
+                    console.log('Service Worker registration failed: ', err);
+                });
+            });
 <!DOCTYPE html>
 <html lang="ht">
 <head>
