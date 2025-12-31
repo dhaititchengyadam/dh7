@@ -63,7 +63,7 @@
             user-select: none;
         }
 
-        /* 1. SCROLL PARFAIT (Native iOS feel, fixed for Android) */
+        /* 1. SCROLL PARFAIT (Native iOS feel, enhanced for Android) */
         .scroll-container {
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
@@ -621,7 +621,7 @@
             </button>
             <div class="flex-1 min-w-0">
                 <h3 id="chat-peer-name" class="font-bold text-lg leading-none truncate">---</h3>
-                <p id="chat-peer-tfid" class="text-[10px] text-zinc-500 mt-1 tracking-widest uppercase truncate copyable" onclick="copyToClipboard(this.innerText)">---</p>
+                <p id="chat-peer-tfid" class="text-[10px] text-zinc-500 font-mono mt-1 tracking-widest uppercase truncate copyable" onclick="copyToClipboard(this.innerText)">---</p>
             </div>
         </header>
 
@@ -1051,7 +1051,7 @@
             } else if (path.startsWith('/TF-')) {
                 const tfid = path.slice(1);
                 navTo('scr-chat', tfid);
-            } else if (path.startsWith('/cherche')) {
+            } else if (path === '/cherche') {
                 navTo('scr-search');
             } else if (path === '/menu') {
                 navTo('scr-menu');
@@ -1733,7 +1733,7 @@
                 });
 
                 audio.addEventListener('loadedmetadata', () => {
-                    timeDisplay.textContent = formatTime(audio.duration);
+                    timeDisplay.textContent = '0:00';
                 });
 
                 audio.addEventListener('ended', () => {
@@ -1741,7 +1741,7 @@
                     playPause.innerHTML = '<path d="M8 5v14l11-7z"/>';
                     progressFill.style.width = '0%';
                     seeker.style.left = '0%';
-                    timeDisplay.textContent = formatTime(audio.duration);
+                    timeDisplay.textContent = '0:00';
                 });
 
                 progressBar.addEventListener('touchstart', startSeek);
@@ -1980,7 +1980,7 @@
 
         async function uploadFile(file, filename, type) {
             let attempts = 0;
-            const maxAttempts = 3; // Increased to 3
+            const maxAttempts = 5; // Increased retries
             while (attempts < maxAttempts) {
                 try {
                     const uniqueName = `${crypto.randomUUID()}_${filename}`;
@@ -2007,8 +2007,9 @@
                     console.error(e);
                     attempts++;
                 }
+                await new Promise(resolve => setTimeout(resolve, 1000 * attempts)); // Exponential backoff
             }
-            alert("Échec de l'upload après plusieurs tentatives");
+            alert("Échec de l'upload après plusieurs tentatives. Eseye ankò pita.");
         }
 
         // --- SEND API ---
