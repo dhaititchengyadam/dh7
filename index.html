@@ -2,7 +2,7 @@
 <html lang="ht">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes, viewport-fit=cover">
     
     <title>D'H7 | Digital Hub 7</title>
     <meta name="description" content="D'H7 (Digital Hub 7) se yon platfòm kominikasyon sekirize ki pèmèt ou jere idantite dijital ou ak yon TFID/D'H7 inik. Konekte kounye a pou w jwenn aksè nan yon rezo pwoteje, miltiling (Kreyòl, Fransè, Angle, Espanyòl), epi fasil pou itilize.">
@@ -63,16 +63,21 @@
             user-select: none;
         }
 
-        /* 1. SCROLL PARFAIT (Native iOS feel) */
+        /* Scroll fixes for cross-browser (Android/Chrome/Edge + iOS/Safari) */
         .scroll-container {
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            touch-action: pan-y pinch-zoom;
+            touch-action: pan-y;
             overscroll-behavior-y: contain;
             scroll-behavior: smooth;
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
         }
         
         .scroll-container::-webkit-scrollbar { width: 0; display: none; }
+        .scroll-container {
+            height: 100%;
+            max-height: 100%;
+        }
 
         .screen {
             position: fixed;
@@ -112,7 +117,7 @@
         }
 
         .bubble {
-            max-width: 80%;
+            max-width: 85%; /* Wider like WhatsApp for voice */
             padding: 0.5rem 0.8rem;
             font-size: 1rem;
             line-height: 1.4;
@@ -492,49 +497,48 @@
             color: var(--text-dim);
         }
 
-        /* Custom Voice Player */
+        /* Updated Voice Player (WhatsApp iOS Style) */
         .voice-player {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 8px;
-            padding: 8px;
-            width: 250px;
+            padding: 0; /* No background padding, integrates into bubble */
+            width: auto; /* Fits bubble width */
+            max-width: 250px; /* Typical WhatsApp size */
         }
         .play-pause {
             cursor: pointer;
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
         }
         .progress-bar {
             flex: 1;
             height: 4px;
-            background: rgba(255,255,255,0.3);
             position: relative;
             cursor: pointer;
             display: flex;
             align-items: center;
-        }
-        .progress-fill {
-            height: 100%;
-            background: var(--accent);
-            width: 0;
-            position: absolute;
-            top: 0;
-            left: 0;
         }
         .wave-form {
             position: absolute;
             height: 100%;
             width: 100%;
             display: flex;
-            gap: 2px;
+            gap: 1px; /* Tighter for more bars */
         }
         .wave-bar {
             width: 2px;
-            height: 100%;
-            background: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.3); /* Default gray */
+            border-radius: 2px; /* Rounded like WhatsApp */
+        }
+        .bubble.me .wave-bar {
+            background: rgba(255,255,255,0.8); /* White in blue bubble */
+        }
+        .bubble.them .wave-bar.progressed {
+            background: var(--accent); /* Blue progress in gray bubble */
+        }
+        .bubble.me .wave-bar.progressed {
+            background: white; /* White progress in blue bubble */
         }
         .seeker {
             position: absolute;
@@ -548,7 +552,14 @@
         .time-display {
             font-size: 0.8rem;
             color: rgba(255,255,255,0.7);
-            min-width: 40px;
+            min-width: 30px;
+            display: block; /* Always shown */
+        }
+        .speed-control {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            margin-left: 4px;
         }
 
         #upload-loading {
@@ -618,7 +629,7 @@
             </button>
             <div class="flex-1 min-w-0">
                 <h3 id="chat-peer-name" class="font-bold text-lg leading-none truncate">---</h3>
-                <p id="chat-peer-tfid" class="text-[10px] text-zinc-500 font-mono mt-1 tracking-widest uppercase truncate copyable" onclick="copyToClipboard(this.innerText)">---</p>
+                <p id="chat-peer-tfid" class="text-[10px] text-zinc-500 mt-1 tracking-widest uppercase truncate copyable" onclick="copyToClipboard(this.innerText)">---</p>
             </div>
         </header>
 
@@ -640,7 +651,7 @@
             <button class="icon-btn text-blue-500" onclick="document.getElementById('file-input').click()">
                 <i class="fa-solid fa-plus text-xl"></i>
             </button>
-            <input type="file" id="file-input" class="hidden" onchange="handleFileSelect(this)">
+            <input type="file" id="file-input" class="hidden" accept="image/*,video/*,audio/*" onchange="handleFileSelect(this)">
 
             <div class="input-wrapper transition-all duration-200" id="input-wrapper">
                 <div id="recording-ui" class="hidden flex-1">
@@ -716,8 +727,8 @@
 
     <script>
         const API = "https://dh7.adamdh7.org";
-        const UPLOAD_URL = "https://url.tergenedhaiti.workers.dev/";
-        const PUBLIC_URL = "https://pub-f5ae73a6ce0f4d0ba225458c1a10d89c.r2.dev/";
+        const UPLOAD_URL = "https://uploads.adamdh7.org/";
+        const PUBLIC_URL = "https://uploads.adamdh7.org/";
         let user = JSON.parse(localStorage.getItem('dh7_session')) || null;
         let activePeer = null;
         let chatInterval = null;
@@ -769,7 +780,8 @@
                 "image-message": "Imaj",
                 "voice-message": "Mesaj vwa",
                 "file-message": "Fichye",
-                "loading": "Patiyans tanpri..."
+                "loading": "Patiyans tanpri...",
+                "upload_failed": "Echèk upload apre plizyè esè"
             },
             fr: {
                 logo: "D'H7",
@@ -801,7 +813,8 @@
                 "image-message": "Image",
                 "voice-message": "Message vocal",
                 "file-message": "Fichier",
-                "loading": "Patientez s'il vous plaît..."
+                "loading": "Patientez s'il vous plaît...",
+                "upload_failed": "Échec de l'upload après plusieurs tentatives"
             },
             en: {
                 logo: "D'H7",
@@ -833,7 +846,8 @@
                 "image-message": "Image",
                 "voice-message": "Voice Message",
                 "file-message": "File",
-                "loading": "Please wait..."
+                "loading": "Please wait...",
+                "upload_failed": "Upload failed after several attempts"
             },
             es: {
                 logo: "D'H7",
@@ -865,7 +879,8 @@
                 "image-message": "Imagen",
                 "voice-message": "Mensaje de voz",
                 "file-message": "Archivo",
-                "loading": "Por favor espere..."
+                "loading": "Por favor espere...",
+                "upload_failed": "Fallo de carga después de varios intentos"
             }
         };
 
@@ -894,7 +909,19 @@
             setupNotifications();
             // Initialiser les écouteurs pour le bouton d'action (Mic/Send)
             initActionBtn();
+            forceScrollRecalc(); // Initial scroll fix
         }
+
+        // Scroll reflow fix for Android
+        function forceScrollRecalc() {
+            const containers = document.querySelectorAll('.scroll-container');
+            containers.forEach(c => {
+                c.style.overflowY = 'hidden';
+                setTimeout(() => { c.style.overflowY = 'auto'; }, 100);
+            });
+        }
+        window.addEventListener('resize', forceScrollRecalc);
+        window.addEventListener('load', forceScrollRecalc);
 
         async function getUserByTfid(tfid) {
             try {
@@ -1031,6 +1058,7 @@
                     if (peer) openChat(peer);
                 });
             }
+            forceScrollRecalc(); // Reflow after nav
         }
 
         window.onpopstate = (event) => {
@@ -1048,7 +1076,7 @@
             } else if (path.startsWith('/TF-')) {
                 const tfid = path.slice(1);
                 navTo('scr-chat', tfid);
-            } else if (path === '/cherche') {
+            } else if (path.startsWith('/cherche')) {
                 navTo('scr-search');
             } else if (path === '/menu') {
                 navTo('scr-menu');
@@ -1291,7 +1319,7 @@
             document.getElementById('chat-peer-tfid').innerText = peer.tfid;
             navTo('scr-chat');
             resetChatView();
-            syncChatSilently();
+            await loadInitialMessages(); // Load all existing at once
             try {
                 const msgsRes = await fetch(`${API}/messages`, {
                     method: 'POST',
@@ -1320,13 +1348,7 @@
             setupScrollListener();
         }
 
-        function resetChatView() {
-            displayedMessageIds.clear(); // Vide le stockage local de la session
-            document.getElementById('chat-messages').innerHTML = ''; // Vide l'écran
-            // currentChatMessages = []; // Commenté si non utilisé
-        }
-
-        async function syncChatSilently() {
+        async function loadInitialMessages() {
             if (!activePeer || !user) return;
 
             try {
@@ -1339,45 +1361,31 @@
                 const messages = await res.json();
                 const container = document.getElementById('chat-messages');
                 
-                // On filtre uniquement les messages qui ne sont pas "ok" 
-                // ET qui n'ont pas encore été affichés (ceux qui n'existent pas dans notre Set)
-                const newMessages = messages.filter(m => {
-                    const msgId = m.time + m.from; // Identifiant unique basé sur temps + expéditeur
-                    return m.text !== 'ok' && !displayedMessageIds.has(msgId);
-                });
+                // Filter non-'ok' messages
+                const validMessages = messages.filter(m => m.text !== 'ok');
 
-                if (newMessages.length > 0) {
-                    // Détecter si l'utilisateur est en train de lire en haut
-                    const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 150;
-
-                    newMessages.forEach(m => {
+                if (validMessages.length > 0) {
+                    const fragment = document.createDocumentFragment();
+                    validMessages.forEach(m => {
                         const msgId = m.time + m.from;
-                        displayedMessageIds.add(msgId); // On le marque comme "existant"
-                        
-                        // On l'ajoute au DOM tout en bas
-                        appendMessageToDOM(m);
+                        displayedMessageIds.add(msgId);
+                        const div = createMessageElement(m);
+                        fragment.appendChild(div);
                     });
-
-                    // On ne scrolle que si l'utilisateur n'est pas en train de remonter le chat
-                    if (isAtBottom) {
-                        scrollToBottom();
-                    }
+                    container.appendChild(fragment);
+                    scrollToBottom();
+                    updateCheckmarks(messages);
+                    attachVoicePlayers();
                 }
-                
-                // Mise à jour des status (Checkmarks) sans toucher au texte
-                updateCheckmarks(messages);
-
             } catch (e) {
-                // En silence total
+                console.error(e);
             }
         }
 
-        function appendMessageToDOM(m) {
-            const container = document.getElementById('chat-messages');
+        function createMessageElement(m) {
             const isMe = m.from === user.tfid;
-            
             const div = document.createElement('div');
-            div.className = `bubble ${isMe ? 'me' : 'them'} animate-slide-in`; // Ajoute une petite animation
+            div.className = `bubble ${isMe ? 'me' : 'them'}`;
             div.id = `msg-${m.time.replace(/[^a-zA-Z0-9]/g, '-')}`;
             
             let text = m.text;
@@ -1426,8 +1434,64 @@
             }
 
             addMessageListeners(div, text);
-            container.appendChild(div);
-            attachVoicePlayers(); // Re-attach for new voices
+            return div;
+        }
+
+        async function syncChatSilently() {
+            if (!activePeer || !user) return;
+
+            try {
+                const res = await fetch(`${API}/messages`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user1_tfid: user.tfid, user2_tfid: activePeer.tfid })
+                });
+                
+                const messages = await res.json();
+                const container = document.getElementById('chat-messages');
+                
+                // On filtre uniquement les messages qui ne sont pas "ok" 
+                // ET qui n'ont pas encore été affichés (ceux qui n'existent pas dans notre Set)
+                const newMessages = messages.filter(m => {
+                    const msgId = m.time + m.from; // Identifiant unique basé sur temps + expéditeur
+                    return m.text !== 'ok' && !displayedMessageIds.has(msgId);
+                });
+
+                if (newMessages.length > 0) {
+                    // Détecter si l'utilisateur est en train de lire en haut
+                    const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 150;
+
+                    const fragment = document.createDocumentFragment();
+                    newMessages.forEach(m => {
+                        const msgId = m.time + m.from;
+                        displayedMessageIds.add(msgId); // On le marque comme "existant"
+                        
+                        // Create element and add to fragment
+                        const div = createMessageElement(m);
+                        div.classList.add('animate-slide-in'); // Animation only for new
+                        fragment.appendChild(div);
+                    });
+                    container.appendChild(fragment);
+
+                    // On ne scrolle que si l'utilisateur n'est pas en train de remonter le chat
+                    if (isAtBottom) {
+                        scrollToBottom();
+                    }
+                    attachVoicePlayers();
+                }
+                
+                // Mise à jour des status (Checkmarks) sans toucher au texte
+                updateCheckmarks(messages);
+
+            } catch (e) {
+                // En silence total
+            }
+        }
+
+        function resetChatView() {
+            displayedMessageIds.clear(); // Vide le stockage local de la session
+            document.getElementById('chat-messages').innerHTML = ''; // Vide l'écran
+            // currentChatMessages = []; // Commenté si non utilisé
         }
 
         function renderReplyPreview(quoted) {
@@ -1487,13 +1551,8 @@
         }
 
         function scrollToBottom() {
-            const container = document.getElementById('chat-messages');
-            if (container) {
-                container.scrollTo({
-                    top: container.scrollHeight,
-                    behavior: 'smooth'
-                });
-            }
+            const d = document.getElementById('chat-messages');
+            d.scrollTo({ top: d.scrollHeight, behavior: 'smooth' });
         }
 
         function getMainMessage(text) {
@@ -1649,14 +1708,11 @@
                         <path d="M8 5v14l11-7z"/> <!-- Play -->
                     </svg>
                     <div class="progress-bar">
-                        <div class="wave-form">
-                            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-                            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-                        </div>
-                        <div class="progress-fill"></div>
+                        <div class="wave-form"></div>
                         <div class="seeker" style="left: 0%;"></div>
                     </div>
                     <span class="time-display">0:00</span>
+                    <span class="speed-control">1x</span>
                 </div>
             `;
         }
@@ -1667,11 +1723,30 @@
                 const audio = new Audio(player.dataset.src);
                 const playPause = player.querySelector('.play-pause');
                 const progressBar = player.querySelector('.progress-bar');
-                const progressFill = player.querySelector('.progress-fill');
+                const waveForm = player.querySelector('.wave-form');
                 const seeker = player.querySelector('.seeker');
                 const timeDisplay = player.querySelector('.time-display');
+                const speedControl = player.querySelector('.speed-control');
                 let isPlaying = false;
                 let isSeeking = false;
+                let speeds = ['1x', '1.5x', '2x'];
+                let currentSpeedIndex = 0;
+                audio.playbackRate = 1;
+
+                // Generate ~30 wave bars with varying heights
+                for (let i = 0; i < 30; i++) {
+                    const bar = document.createElement('div');
+                    bar.className = 'wave-bar';
+                    bar.style.height = `${Math.random() * 80 + 20}%`; // Vary 20-100%
+                    waveForm.appendChild(bar);
+                }
+                const waveBars = waveForm.querySelectorAll('.wave-bar');
+
+                speedControl.addEventListener('click', () => {
+                    currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
+                    speedControl.textContent = speeds[currentSpeedIndex];
+                    audio.playbackRate = parseFloat(speeds[currentSpeedIndex]);
+                });
 
                 playPause.addEventListener('click', () => {
                     if (isPlaying) {
@@ -1687,22 +1762,22 @@
                 audio.addEventListener('timeupdate', () => {
                     if (!isSeeking) {
                         const progress = (audio.currentTime / audio.duration) * 100;
-                        progressFill.style.width = `${progress}%`;
                         seeker.style.left = `${progress}%`;
                         timeDisplay.textContent = formatTime(audio.currentTime);
+                        updateWaveProgress(progress);
                     }
                 });
 
                 audio.addEventListener('loadedmetadata', () => {
-                    timeDisplay.textContent = '0:00';
+                    timeDisplay.textContent = formatTime(audio.duration);
                 });
 
                 audio.addEventListener('ended', () => {
                     isPlaying = false;
                     playPause.innerHTML = '<path d="M8 5v14l11-7z"/>';
-                    progressFill.style.width = '0%';
                     seeker.style.left = '0%';
-                    timeDisplay.textContent = '0:00';
+                    timeDisplay.textContent = formatTime(audio.duration);
+                    updateWaveProgress(0);
                 });
 
                 progressBar.addEventListener('touchstart', startSeek);
@@ -1722,9 +1797,9 @@
                     const rect = progressBar.getBoundingClientRect();
                     const x = touch.clientX - rect.left;
                     const progress = Math.min(1, Math.max(0, x / rect.width));
-                    progressFill.style.width = `${progress * 100}%`;
                     seeker.style.left = `${progress * 100}%`;
                     audio.currentTime = progress * audio.duration;
+                    updateWaveProgress(progress * 100);
                 }
 
                 function endSeek() {
@@ -1734,6 +1809,17 @@
                     document.removeEventListener(moveEvent, seek);
                     document.removeEventListener(endEvent, endSeek);
                     if (isPlaying) audio.play();
+                }
+
+                function updateWaveProgress(progress) {
+                    const progressedCount = Math.floor((progress / 100) * waveBars.length);
+                    waveBars.forEach((bar, index) => {
+                        if (index < progressedCount) {
+                            bar.classList.add('progressed');
+                        } else {
+                            bar.classList.remove('progressed');
+                        }
+                    });
                 }
 
                 function formatTime(seconds) {
@@ -1941,11 +2027,11 @@
 
         async function uploadFile(file, filename, type) {
             let attempts = 0;
-            const maxAttempts = 2;
+            const maxAttempts = 5;
             while (attempts < maxAttempts) {
                 try {
                     const uniqueName = `${crypto.randomUUID()}_${filename}`;
-                    const uploadRes = await fetch(`${UPLOAD_URL}${uniqueName}`, {
+                    const uploadRes = await fetch(`${UPLOAD_URL}/${uniqueName}`, {
                         method: 'PUT',
                         headers: {'Content-Type': type},
                         body: file
@@ -1969,7 +2055,7 @@
                     attempts++;
                 }
             }
-            alert("Échec de l'upload après plusieurs tentatives");
+            alert(translations[currentLanguage]["upload_failed"]);
         }
 
         // --- SEND API ---
