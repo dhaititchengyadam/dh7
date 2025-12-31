@@ -21,6 +21,8 @@
             --bg-card: #0a0a0a;
             --bg-input: #1c1c1e;
             --accent: #007aff;
+            --border: #1a1a1a;
+            --text-dim: #8e8e93;
             --msg-me: #007aff;
             --msg-them: #262628;
         }
@@ -35,238 +37,336 @@
         body {
             background-color: var(--bg-pure);
             color: white;
-            font-family: 'Inter', sans-serif;
-            height: 100vh;
-            /* Fix pour mobile browsers modernes */
-            height: 100dvh; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            height: 100dvh;
             width: 100vw;
             overflow: hidden;
             user-select: none;
         }
 
-        /* 1. SCROLL FIX FOR ANDROID & IOS */
+        /* 1. SCROLL PARFAIT (Native iOS feel + Android fix) */
         .scroll-container {
             overflow-y: auto;
-            overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
-            touch-action: pan-y;
-            overscroll-behavior-y: contain; /* Empêche le refresh page natif android */
+            touch-action: pan-y pinch-zoom;
+            overscroll-behavior-y: contain;
             scroll-behavior: smooth;
-            flex-grow: 1;
+            height: 100%;
         }
         
         .scroll-container::-webkit-scrollbar { width: 0; display: none; }
 
         .screen {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
             background-color: var(--bg-pure);
             z-index: 10;
-            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.2s;
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.2s; /* iOS slide transition */
         }
 
-        .screen.hidden-left { transform: translateX(-30%); opacity: 0; pointer-events: none; }
-        .screen.hidden-right { transform: translateX(100%); opacity: 1; pointer-events: none; }
+        .screen.hidden-left { transform: translateX(-30%); opacity: 0; pointer-events: none; } /* Parallax effect */
+        .screen.hidden-right { transform: translateX(100%); opacity: 1; pointer-events: none; } /* Slide in from right */
         .screen.active { transform: translateX(0); opacity: 1; pointer-events: auto; }
 
         .ios-header {
             padding: env(safe-area-inset-top) 1rem 0.8rem 1rem;
-            background: rgba(0,0,0,0.9);
-            backdrop-filter: blur(10px);
-            position: sticky; top: 0; z-index: 20;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 20;
             border-bottom: 0.5px solid rgba(255,255,255,0.1);
-            flex-shrink: 0;
         }
 
         /* Chat Layout */
         .chat-body {
+            flex: 1;
             padding: 1rem;
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            padding-bottom: 120px; /* Espace pour l'input */
+            gap: 2px; /* WhatsApp style gap */
         }
 
         .bubble {
-            max-width: 85%;
+            max-width: 80%;
             padding: 0.5rem 0.8rem;
             font-size: 1rem;
             line-height: 1.4;
             position: relative;
+            white-space: pre-wrap;
             word-break: break-word;
             margin-bottom: 2px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
         }
 
         .bubble.me {
             align-self: flex-end;
             background-color: var(--msg-me);
             color: white;
-            border-radius: 18px 18px 0 18px;
+            border-radius: 12px 12px 0 12px;
         }
 
         .bubble.them {
             align-self: flex-start;
             background-color: var(--msg-them);
             color: white;
-            border-radius: 18px 18px 18px 0;
+            border-radius: 12px 12px 12px 0;
         }
 
-        /* 4. CUSTOM AUDIO PLAYER STYLES */
-        .audio-player-custom {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 5px 0;
-            width: 240px;
-            max-width: 100%;
-        }
-        
-        .play-btn-circle {
-            width: 36px; height: 36px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            display: flex; align-items: center; justify-content: center;
+        /* Media Support Styles */
+        .media-content {
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 4px;
+            margin-bottom: 4px;
             cursor: pointer;
-            flex-shrink: 0;
         }
-        
-        .audio-timeline {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .seek-slider {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 15px;
-            background: transparent; /* Track invisible, on utilise un gradient */
-            outline: none;
-            cursor: pointer;
-            position: relative;
-            margin: 0;
-        }
-
-        /* La barre visuelle |||||| */
-        .seek-slider::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 6px;
-            /* Simulation d'une onde sonore avec un repeating gradient */
-            background: repeating-linear-gradient(
-                90deg,
-                rgba(255,255,255,0.4) 0px,
-                rgba(255,255,255,0.4) 2px,
-                transparent 2px,
-                transparent 4px
-            );
-            border-radius: 3px;
-        }
-
-        /* Le point • */
-        .seek-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 14px;
-            width: 14px;
-            border-radius: 50%;
-            background: #ffffff;
-            margin-top: -4px; /* Center thumb */
-            box-shadow: 0 0 5px rgba(0,0,0,0.5);
-            border: 2px solid var(--accent);
-        }
-
-        .audio-timer {
-            font-family: monospace;
-            font-size: 10px;
-            color: rgba(255,255,255,0.7);
-            margin-top: 2px;
-            text-align: right;
-        }
-
-        /* Media & Reply */
         .media-content img, .media-content video {
-            border-radius: 12px;
             max-width: 100%;
             height: auto;
             display: block;
         }
-
-        .reply-preview-bar {
+        .fullscreen-media {
+            position: fixed;
+            inset: 0;
+            background: black;
+            z-index: 9999;
             display: flex;
             align-items: center;
-            gap: 10px;
-            background: #1c1c1e;
-            padding: 8px 12px;
-            margin: 0 10px 10px 10px;
-            border-radius: 12px;
-            border-left: 3px solid var(--accent);
-            animation: slideUp 0.2s ease;
+            justify-content: center;
         }
-        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
-        .reply-thumb {
-            width: 36px; height: 36px;
-            object-fit: cover;
-            border-radius: 4px;
-            background: #333;
+        .fullscreen-media img, .fullscreen-media video {
+            max-width: 100%;
+            max-height: 100%;
         }
 
-        /* Input Area */
+        /* Reply Styles */
+        .reply-bar {
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            padding: 4px 8px;
+            margin-bottom: 4px;
+            font-size: 0.75rem;
+            border-left: 3px solid rgba(255,255,255,0.5);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+        .reply-name { font-weight: 700; color: rgba(255,255,255,0.9); margin-bottom: 2px; }
+        .reply-text { color: rgba(255,255,255,0.7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .status {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.6);
+            display: inline-block;
+            float: right;
+            margin-left: 8px;
+            margin-top: 4px;
+        }
+        .status.read { color: #66e0ff; }
+
+        /* Input Area - WhatsApp Style */
         .input-area {
-            position: fixed; bottom: 0; left: 0; width: 100%;
             padding: 0.5rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom)) 0.5rem;
-            background: var(--bg-pure); /* Opaque pour cacher le scroll */
-            display: flex; align-items: flex-end; gap: 0.5rem;
+            background: var(--bg-pure);
+            display: flex;
+            align-items: flex-end;
+            gap: 0.5rem;
             border-top: 0.5px solid rgba(255,255,255,0.1);
-            z-index: 30;
         }
 
         .input-wrapper {
             flex: 1;
             background: var(--bg-input);
             border-radius: 20px;
-            display: flex; align-items: center;
+            display: flex;
+            align-items: flex-end;
             padding: 8px 12px;
             min-height: 40px;
         }
 
         #msg-input {
-            width: 100%; background: transparent; border: none; color: white;
-            outline: none; font-size: 1rem; max-height: 100px; resize: none; padding: 0;
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: white;
+            outline: none;
+            font-size: 1rem;
+            max-height: 100px;
+            resize: none;
+            padding: 0;
+            line-height: 1.4;
         }
 
         .action-btn {
-            width: 45px; height: 45px; border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
             background: var(--msg-me);
-            display: flex; align-items: center; justify-content: center;
-            color: white; flex-shrink: 0; cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+            transition: all 0.2s;
+            cursor: pointer;
         }
-        .action-btn.mic-mode { background: #3a3a3c; }
+        .action-btn.mic-mode { background: var(--msg-them); }
 
-        /* Recording UI */
-        #recording-ui { color: #ff3b30; font-weight: 600; display: flex; align-items: center; gap: 8px; width: 100%; }
-        .rec-dot { width: 10px; height: 10px; background: #ff3b30; border-radius: 50%; animation: pulse 1s infinite; }
+        .icon-btn {
+            color: var(--accent);
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        /* Voice Recorder UI */
+        #recording-ui {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ff3b30;
+            font-weight: 600;
+            animation: pulse 1s infinite;
+        }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        .hidden { display: none !important; }
-        
         /* Helpers */
+        .hidden { display: none !important; }
+        .copyable { cursor: pointer; }
         .contact-card {
-            background: transparent; padding: 0.8rem 1rem;
-            display: flex; align-items: center; gap: 1rem;
+            background: transparent;
+            padding: 0.8rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
             border-bottom: 0.5px solid rgba(255,255,255,0.05);
         }
         .contact-card:active { background: rgba(255,255,255,0.05); }
         .avatar {
-            width: 3.2rem; height: 3.2rem; background: #2c2c2e; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 600; font-size: 1.1rem; color: white;
+            width: 3.2rem;
+            height: 3.2rem;
+            background: #2c2c2e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: white;
         }
+        
         .modern-input {
-            background: var(--bg-input); border: none; border-radius: 12px;
-            padding: 12px; color: white; width: 100%; outline: none;
+            background: var(--bg-input);
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            color: white;
+            width: 100%;
+            outline: none;
+        }
+
+        /* Language Overlay Bottom Sheet */
+        .language-overlay {
+            position: fixed;
+            bottom: 0; left: 0; width: 100%;
+            background: #1c1c1e;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            z-index: 100;
+            transform: translateY(100%);
+            transition: transform 0.3s;
+        }
+        .language-overlay.show { transform: translateY(0); }
+        .lang-opt {
+            padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center;
+        }
+        .backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .backdrop.show { opacity: 1; pointer-events: auto; }
+        
+        #scroll-down-btn {
+            position: fixed; bottom: 80px; right: 20px;
+            background: #262628; border: 1px solid #333; color: var(--accent);
+            padding: 8px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            z-index: 30; transition: opacity 0.3s;
+        }
+
+        /* Custom Voice Player */
+        .voice-player {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 8px;
+            width: 250px;
+        }
+        .play-pause {
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+        }
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .wave-form {
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            gap: 2px;
+        }
+        .wave-bar {
+            width: 2px;
+            height: 100%;
+            background: rgba(255,255,255,0.3);
+        }
+        .seeker {
+            position: absolute;
+            top: -4px;
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            transform: translateX(-50%);
+        }
+        .time-display {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+            min-width: 40px;
+        }
+
+        /* Reply Preview for Media */
+        .reply-preview-media {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            object-fit: cover;
+            margin-right: 8px;
+        }
+        .reply-preview-icon {
+            font-size: 1.2rem;
+            color: var(--accent);
+            margin-right: 8px;
         }
     </style>
 </head>
@@ -274,14 +374,14 @@
 
     <section id="scr-auth" class="screen active flex items-center justify-center p-8">
         <div class="w-full max-w-sm text-center">
-            <h1 class="text-7xl font-black tracking-tighter mb-2 italic logo">D'H7</h1>
-            <p class="text-zinc-600 text-xs uppercase tracking-[0.6em] mb-16">Digital HUB 7</p>
+            <h1 class="text-7xl font-black tracking-tighter mb-2 italic logo" onclick="showLang()">D'H7</h1>
+            <p class="text-zinc-600 text-xs uppercase tracking-[0.6em] mb-16" data-key="subtitle">Digital HUB 7</p>
             
             <div id="login-form" class="space-y-4">
-                <input type="text" id="login-id" placeholder="TFID oswa DH7" class="modern-input">
-                <input type="password" id="login-pass" placeholder="Modpas" class="modern-input">
-                <button onclick="login()" class="w-full bg-white text-black font-black py-4 rounded-xl mt-4 text-lg">LOG IN</button>
-                <button onclick="toggleAuth()" class="w-full text-zinc-500 text-sm mt-4">KREYE YON KONT</button>
+                <input type="text" id="login-id" data-key="placeholder-tfid" placeholder="TFID oswa DH7" class="modern-input">
+                <input type="password" id="login-pass" data-key="placeholder-password" placeholder="Modpas" class="modern-input">
+                <button onclick="login()" class="w-full bg-white text-black font-black py-4 rounded-xl mt-4 text-lg" data-key="connect">LOG IN</button>
+                <button onclick="toggleAuth()" class="w-full text-zinc-500 text-sm mt-4" data-key="register">KREYE YON KONT</button>
             </div>
 
             <div id="reg-form" class="hidden space-y-4">
@@ -292,7 +392,7 @@
                 <input type="text" id="reg-dh7" placeholder="DH7 ID" class="modern-input">
                 <input type="number" id="reg-age" placeholder="Age" class="modern-input">
                 <input type="password" id="reg-pass" placeholder="Password" class="modern-input">
-                <button onclick="register()" class="w-full bg-white text-black font-black py-4 rounded-xl mt-4">JOIN</button>
+                <button onclick="register()" class="w-full bg-white text-black font-black py-4 rounded-xl mt-4" data-key="create-account">JOIN</button>
                 <button onclick="toggleAuth()" class="w-full text-zinc-500 text-sm mt-4">RETOUNEN</button>
             </div>
         </div>
@@ -303,53 +403,57 @@
             <h2 class="text-3xl font-bold tracking-tight text-white pl-2">Diskisyon</h2>
             <div class="flex gap-4 text-blue-500 pb-1">
                 <i class="fa-solid fa-pen-to-square text-xl" onclick="navTo('scr-search')"></i>
-                <i class="fa-solid fa-ellipsis text-xl" onclick="logout()"></i>
+                <i class="fa-solid fa-ellipsis text-xl" onclick="navTo('scr-menu')"></i>
             </div>
         </header>
         
-        <div id="contact-list" class="scroll-container">
+        <div id="contact-list" class="flex-1 scroll-container">
             </div>
     </section>
 
     <section id="scr-chat" class="screen hidden-right flex flex-col">
-        <header class="ios-header flex items-center gap-3">
-            <button onclick="navTo('scr-home')" class="text-blue-500 flex items-center gap-1 pl-2">
+        <header class="ios-header flex items-center gap-3 bg-opacity-95">
+            <button onclick="navTo('scr-home')" class="text-blue-500 flex items-center gap-1">
                 <i class="fa-solid fa-chevron-left text-xl"></i>
-                <span class="text-lg">Retou</span>
+                <span class="text-lg" id="back-counter"></span>
             </button>
-            <div class="flex-1 flex items-center gap-3 justify-center pr-8">
-                <div class="w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center text-sm font-bold" id="chat-header-avatar">?</div>
-                <div class="overflow-hidden text-center">
-                    <h3 id="chat-peer-name" class="font-bold text-sm leading-none truncate">User</h3>
-                    <p class="text-[10px] text-zinc-500 mt-0.5">En ligne</p>
+            <div class="flex-1 flex items-center gap-3 cursor-pointer" onclick="showContactInfo()">
+                <div class="w-9 h-9 bg-zinc-800 rounded-full flex items-center justify-center text-sm font-bold" id="chat-header-avatar">?</div>
+                <div class="overflow-hidden">
+                    <h3 id="chat-peer-name" class="font-bold text-base leading-none truncate">User</h3>
+                    <p id="chat-peer-tfid" class="text-xs text-zinc-500 mt-0.5 truncate">En ligne</p>
                 </div>
             </div>
         </header>
 
-        <div id="chat-messages" class="scroll-container chat-body">
-            </div>
+        <div id="chat-messages" class="chat-body scroll-container"></div>
 
-        <div id="reply-bar" class="hidden reply-preview-bar">
-            <div id="reply-thumb-container"></div>
-            <div class="flex-1 overflow-hidden">
-                <p class="text-xs text-blue-400 font-bold mb-1">Reponn a</p>
-                <p class="text-xs text-gray-300 truncate" id="reply-text">...</p>
+        <button id="scroll-down-btn" class="hidden" onclick="scrollToBottom()">
+            <i class="fa-solid fa-chevron-down"></i>
+        </button>
+
+        <div id="reply-preview" class="hidden mx-2 mt-2 bg-zinc-800 p-2 rounded-lg border-l-4 border-blue-500 flex justify-between items-center">
+            <div class="overflow-hidden flex items-center">
+                <div id="reply-media-preview"></div>
+                <div>
+                    <p class="text-xs text-blue-400 font-bold" id="reply-to-name">Répondre à...</p>
+                    <p class="text-xs text-gray-300 truncate" id="reply-content"></p>
+                </div>
             </div>
-            <button onclick="cancelReply()" class="text-gray-400 p-2"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="cancelReply()" class="text-gray-400 px-2">×</button>
         </div>
 
         <div class="input-area">
-            <button class="text-blue-500 p-2" onclick="document.getElementById('file-input').click()">
+            <button class="icon-btn text-blue-500" onclick="document.getElementById('file-input').click()">
                 <i class="fa-solid fa-plus text-xl"></i>
             </button>
-            <input type="file" id="file-input" class="hidden" onchange="handleFileUpload(this)">
+            <input type="file" id="file-input" class="hidden" onchange="handleFileSelect(this)">
 
-            <div class="input-wrapper" id="input-wrapper">
-                <div id="recording-ui" class="hidden">
-                    <div class="rec-dot"></div>
-                    <span>Recording... <span id="rec-timer" class="font-mono">0:00</span></span>
+            <div class="input-wrapper transition-all duration-200" id="input-wrapper">
+                <div id="recording-ui" class="hidden flex-1">
+                    <i class="fa-solid fa-circle text-xs"></i> <span>Enregistrement... <span id="rec-timer">0:00</span></span>
                 </div>
-                <textarea id="msg-input" placeholder="Ekri yon mesaj..." rows="1" oninput="handleInput(this)"></textarea>
+                <textarea id="msg-input" data-key="message-placeholder" placeholder="" rows="1" oninput="handleInput(this)"></textarea>
             </div>
 
             <div id="action-btn" class="action-btn mic-mode">
@@ -364,39 +468,87 @@
                 <i class="fa-solid fa-magnifying-glass text-gray-500 mr-2"></i>
                 <input type="text" id="search-q" oninput="doSearch()" placeholder="Rechercher" class="bg-transparent text-white w-full outline-none">
             </div>
-            <button onclick="navTo('scr-home')" class="text-blue-500">Annuler</button>
+            <button onclick="navTo('scr-home')" class="text-blue-500 font-semibold">Annuler</button>
         </header>
-        <div id="search-results" class="scroll-container p-4"></div>
+        <div id="search-results" class="flex-1 scroll-container p-4"></div>
     </section>
 
-    <div id="fs-media" class="fixed inset-0 bg-black z-50 hidden flex items-center justify-center" onclick="this.classList.add('hidden')"></div>
+    <section id="scr-menu" class="screen hidden-right">
+        <div class="flex-1 flex flex-col items-center p-8 pt-20">
+            <div class="w-24 h-24 bg-zinc-800 rounded-full mb-4 flex items-center justify-center text-4xl font-bold border border-zinc-700" id="m-init">?</div>
+            <h2 id="m-name" class="text-2xl font-bold">---</h2>
+            <p id="m-dh7" class="text-zinc-500 text-sm mb-8">---</p>
+            
+            <div class="w-full max-w-md bg-zinc-900 rounded-xl overflow-hidden">
+                <div class="p-4 border-b border-zinc-800 flex justify-between items-center" onclick="copyToClipboard(user.tfid)">
+                    <span>TFID</span>
+                    <span id="m-tfid" class="text-zinc-400 font-mono text-sm">---</span>
+                </div>
+                <div class="p-4 border-b border-zinc-800 cursor-pointer" onclick="showLang()">
+                    <span>Langue / Language</span>
+                </div>
+                <div class="p-4 text-red-500 cursor-pointer font-semibold text-center" onclick="logout()">
+                    Se déconnecter
+                </div>
+            </div>
+            <button onclick="navTo('scr-home')" class="mt-8 text-zinc-500">Fermer</button>
+        </div>
+    </section>
+
+    <div id="backdrop" class="backdrop" onclick="closeOverlays()"></div>
+    <div id="lang-sheet" class="language-overlay">
+        <div class="lang-opt" onclick="changeLanguage('ht')">Kreyòl Ayisyen</div>
+        <div class="lang-opt" onclick="changeLanguage('fr')">Français</div>
+        <div class="lang-opt" onclick="changeLanguage('en')">English</div>
+        <div class="lang-opt" onclick="changeLanguage('es')">Español</div>
+        <div class="p-4 text-center text-blue-500 font-bold cursor-pointer" onclick="closeOverlays()">Fermer</div>
+    </div>
+    
+    <div id="fs-media" class="hidden fullscreen-media" onclick="this.classList.add('hidden'); this.innerHTML='';"></div>
 
     <script>
-        // CONFIG
+        // CONFIG & STATE
         const API = "https://dh7.adamdh7.org";
-        const WORKER_URL = "https://url.tergenedhaiti.workers.dev"; // URL pour upload PUT
-
+        const UPLOAD_URL = "https://url.tergenedhaiti.workers.dev/";
         let user = JSON.parse(localStorage.getItem('dh7_session')) || null;
         let activePeer = null;
-        let chatInterval = null;
-        let replyingTo = null; // Stocke l'objet message auquel on répond
+        let chatInterval = null, homeInterval = null;
+        let replyingTo = null;
+        let currentLang = localStorage.getItem('language') || 'ht';
         
-        // Audio Recorder State
+        // Voice Recording State
         let mediaRecorder = null;
         let audioChunks = [];
+        let recordStartTime = 0;
         let recordTimerInterval = null;
 
-        // --- INIT ---
+        const translations = {
+            ht: { "message-placeholder": "Ekri yon mesaj...", subtitle: "Digital Hub" },
+            fr: { "message-placeholder": "Écrire un message...", subtitle: "Hub Numérique" },
+            en: { "message-placeholder": "Type a message...", subtitle: "Digital Hub" },
+            es: { "message-placeholder": "Escribe un mensaje...", subtitle: "Centro Digital" }
+        };
+
+        // --- INIT & AUTH ---
         if(user) startApp();
 
         function startApp() {
+            document.getElementById('m-name').innerText = `${user.prenom} ${user.nom}`;
+            document.getElementById('m-dh7').innerText = user.dh7;
+            document.getElementById('m-tfid').innerText = user.tfid;
+            document.getElementById('m-init').innerText = user.nom[0];
+            changeLanguage(currentLang);
             navTo('scr-home');
+            
+            // Initialiser les écouteurs pour le bouton d'action (Mic/Send)
             initActionBtn();
         }
 
         async function login() {
             const id = document.getElementById('login-id').value.trim();
             const pass = document.getElementById('login-pass').value;
+            if(!id || !pass) return alert("Ranpli tout chan yo.");
+            
             let finalId = id.includes('@') || id.startsWith('TF-') ? id : id + '@dh7.tf';
             
             try {
@@ -410,13 +562,32 @@
                     user = data.user;
                     localStorage.setItem('dh7_session', JSON.stringify(user));
                     startApp();
-                } else alert("Erreur identifiants");
+                } else { alert(data.error || "Erreur"); }
             } catch(e) { alert("Erreur connexion"); }
         }
 
         async function register() {
-            // Logique d'inscription standard
-            alert("Fonction désactivée pour la démo");
+            // Logic similaire à ton code original
+            const nom = document.getElementById('reg-nom').value;
+            const prenom = document.getElementById('reg-prenom').value;
+            const dh7 = document.getElementById('reg-dh7').value;
+            const age = document.getElementById('reg-age').value;
+            const pass = document.getElementById('reg-pass').value;
+            
+            try {
+                const res = await fetch(`${API}/register`, {
+                    method: 'POST', headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({nom, prenom, dh7, age, password: pass})
+                });
+                const d = await res.json();
+                if(d.success) { alert("Compte créé: "+d.tfid); toggleAuth(); }
+                else alert(d.error);
+            } catch(e) { alert("Erreur"); }
+        }
+
+        function toggleAuth() {
+            document.getElementById('login-form').classList.toggle('hidden');
+            document.getElementById('reg-form').classList.toggle('hidden');
         }
 
         function logout() { localStorage.clear(); location.reload(); }
@@ -431,41 +602,62 @@
             
             if(screenId === 'scr-home') {
                 loadContacts();
+                if(!homeInterval) homeInterval = setInterval(updateContacts, 3000); // Refresh silencieux
                 clearInterval(chatInterval);
             } else if (screenId === 'scr-chat') {
+                clearInterval(homeInterval); homeInterval = null;
                 fetchMessages();
-                chatInterval = setInterval(fetchMessages, 3000);
+                if(!chatInterval) chatInterval = setInterval(fetchMessages, 3000); // Refresh silencieux
+                setTimeout(scrollToBottom, 100);
             }
         }
 
-        // --- CONTACTS ---
+        // --- CONTACTS & LIST ---
         async function loadContacts() {
             try {
                 const res = await fetch(`${API}/users`);
                 const allUsers = await res.json();
                 const container = document.getElementById('contact-list');
                 container.innerHTML = '';
+                
+                // Filtrer pour ne pas s'afficher soi-même
                 allUsers.filter(u => u.tfid !== user.tfid).forEach(u => {
-                    container.innerHTML += `
-                        <div class="contact-card" onclick='openChat(${JSON.stringify(u)})'>
-                            <div class="avatar">${u.nom[0]}</div>
-                            <div class="flex-1 overflow-hidden">
+                    // Dans une vraie app on filtrerait ceux avec qui on a parlé
+                    // Ici on affiche tout pour la démo, ou on simule la récupération des derniers messages
+                    const div = document.createElement('div');
+                    div.className = "contact-card";
+                    div.innerHTML = `
+                        <div class="avatar">${u.nom[0]}</div>
+                        <div class="flex-1 overflow-hidden">
+                            <div class="flex justify-between items-baseline">
                                 <h3 class="font-bold truncate">${u.prenom} ${u.nom}</h3>
-                                <p class="text-sm text-zinc-500 truncate">Cliquez pour discuter</p>
+                                <span class="text-xs text-zinc-600 font-mono">${u.tfid}</span>
                             </div>
-                        </div>`;
+                            <p class="text-sm text-zinc-500 truncate">Cliquez pour discuter</p>
+                        </div>
+                    `;
+                    div.onclick = () => openChat(u);
+                    container.appendChild(div);
                 });
             } catch(e) { console.error(e); }
+        }
+        
+        // Simplement mettre à jour les badges (refresh silencieux)
+        async function updateContacts() {
+            // Ici tu peux ajouter la logique pour mettre à jour seulement le texte "Dernier message"
+            // sans recharger toute la liste pour éviter le scintillement.
+            // Pour l'instant, c'est vide pour garder la fluidité demandée.
         }
 
         function openChat(peer) {
             activePeer = peer;
             document.getElementById('chat-peer-name').innerText = `${peer.prenom} ${peer.nom}`;
+            document.getElementById('chat-peer-tfid').innerText = peer.tfid;
             document.getElementById('chat-header-avatar').innerText = peer.nom[0];
             navTo('scr-chat');
         }
 
-        // --- MESSAGING ---
+        // --- MESSAGING SYSTEM ---
         async function fetchMessages() {
             if(!activePeer) return;
             try {
@@ -476,209 +668,211 @@
                 });
                 const msgs = await res.json();
                 renderMessages(msgs);
-            } catch(e) {}
+            } catch(e) { console.error(e); }
         }
 
         function renderMessages(messages) {
             const container = document.getElementById('chat-messages');
-            const atBottom = (container.scrollHeight - container.scrollTop - container.clientHeight) < 100;
-            container.innerHTML = ''; // Simple flush for demo
+            const currentScroll = container.scrollTop;
+            const isAtBottom = (container.scrollHeight - container.scrollTop - container.clientHeight) < 50;
+
+            container.innerHTML = '';
             
-            messages.forEach(m => {
+            messages.forEach((m, index) => {
                 if(m.text === 'ok') return;
                 const isMe = m.from === user.tfid;
                 const div = document.createElement('div');
                 div.className = `bubble ${isMe ? 'me' : 'them'}`;
+                div.dataset.messageId = index;
                 
-                // Gestion Swipe/Click pour répondre
-                div.onclick = (e) => {
-                    // Eviter de trigger si on clique sur les contrôles audio
-                    if(!e.target.closest('input') && !e.target.closest('button')) {
-                        setupReply(m);
-                    }
-                };
-
-                let contentHtml = renderContent(m.text, `msg-${m.id || Math.random().toString(36).substr(2,9)}`);
-                div.innerHTML = contentHtml;
+                div.innerHTML = renderText(m.text);
+                
+                if(isMe) {
+                    const status = document.createElement('span');
+                    status.className = `status ${m.read ? 'read' : ''}`;
+                    status.innerHTML = m.read ? '<i class="fa-solid fa-check-double"></i>' : '<i class="fa-solid fa-check"></i>';
+                    div.appendChild(status);
+                }
+                
+                // Long press for reply
+                div.addEventListener('contextmenu', (e) => { e.preventDefault(); setReplyTo(m); });
+                div.addEventListener('touchstart', () => {
+                    longPressTimer = setTimeout(() => setReplyTo(m), 500);
+                });
+                div.addEventListener('touchend', () => clearTimeout(longPressTimer));
+                
                 container.appendChild(div);
             });
 
-            if(atBottom) container.scrollTop = container.scrollHeight;
+            attachVoicePlayers();
+
+            if(isAtBottom) container.scrollTop = container.scrollHeight;
+            else container.scrollTop = currentScroll;
         }
 
-        // 4. RENDER CONTENT & CUSTOM AUDIO PLAYER
-        function renderContent(text, uniqueId) {
-            // Check Audio
-            if(text.match(/\.(mp3|wav|ogg|m4a)$/i) || text.startsWith('data:audio')) {
-                return `
-                <div class="audio-player-custom" id="player-${uniqueId}">
-                    <div class="play-btn-circle" onclick="toggleAudio('${uniqueId}', '${text}')">
-                        <i class="fa-solid fa-play text-white" id="icon-${uniqueId}"></i>
-                    </div>
-                    <div class="audio-timeline">
-                        <input type="range" min="0" max="100" value="0" class="seek-slider" 
-                               oninput="seekAudio('${uniqueId}')" 
-                               onchange="resumeAudio('${uniqueId}')"
-                               id="slider-${uniqueId}">
-                        <div class="audio-timer" id="timer-${uniqueId}">00:00</div>
-                    </div>
-                    <audio id="audio-${uniqueId}" src="${text}" preload="metadata" ontimeupdate="updateSlider('${uniqueId}')" onended="resetPlayer('${uniqueId}')" class="hidden"></audio>
-                </div>`;
-            }
-            // Check Image
-            if(text.match(/\.(jpeg|jpg|gif|png|webp)$/i) || text.startsWith('data:image')) {
-                return `<div class="media-content"><img src="${text}" onclick="showFS('${text}')" loading="lazy"></div>`;
-            }
-            // Check Video
-            if(text.match(/\.(mp4|mov|avi)$/i) || text.startsWith('data:video')) {
-                return `<div class="media-content"><video src="${text}" controls playsinline></video></div>`;
-            }
-            return text;
-        }
-
-        // --- AUDIO PLAYER LOGIC ---
-        // Gestion globale pour simplifier le code "single file"
-        function toggleAudio(id, src) {
-            const audio = document.getElementById(`audio-${id}`);
-            const icon = document.getElementById(`icon-${id}`);
-            
-            // Pause all others
-            document.querySelectorAll('audio').forEach(a => {
-                if(a.id !== `audio-${id}`) {
-                    a.pause();
-                    // Reset icons of others
-                    const otherId = a.id.replace('audio-', '');
-                    const otherIcon = document.getElementById(`icon-${otherId}`);
-                    if(otherIcon) otherIcon.className = "fa-solid fa-play text-white";
+        // --- CORE: MEDIA RENDERING & UTILS ---
+        
+        function renderText(text) {
+            if (text.startsWith(UPLOAD_URL)) {
+                const filename = text.split('/').pop();
+                const ext = filename.split('.').pop().toLowerCase();
+                
+                // Image
+                if(['jpeg','jpg','gif','png'].includes(ext)) {
+                    return `<div class="media-content" onclick="openFullscreen(this)"><img src="${text}" loading="lazy" alt="${filename}" /></div><small class="text-gray-400">${filename}</small>`;
                 }
-            });
-
-            if(audio.paused) {
-                audio.play();
-                icon.className = "fa-solid fa-pause text-white";
-            } else {
-                audio.pause();
-                icon.className = "fa-solid fa-play text-white";
-            }
-        }
-
-        function updateSlider(id) {
-            const audio = document.getElementById(`audio-${id}`);
-            const slider = document.getElementById(`slider-${id}`);
-            const timer = document.getElementById(`timer-${id}`);
-            
-            if(!audio.duration) return;
-            
-            // Update Slider Position
-            const pct = (audio.currentTime / audio.duration) * 100;
-            slider.value = pct;
-            
-            // Update Timer Text
-            const m = Math.floor(audio.currentTime / 60);
-            const s = Math.floor(audio.currentTime % 60);
-            timer.innerText = `${m}:${s<10?'0':''}${s}`;
-        }
-
-        function seekAudio(id) {
-            const audio = document.getElementById(`audio-${id}`);
-            const slider = document.getElementById(`slider-${id}`);
-            audio.pause(); // Pause pendant le seek
-            const seekTime = (slider.value / 100) * audio.duration;
-            audio.currentTime = seekTime;
-        }
-
-        function resumeAudio(id) {
-            const audio = document.getElementById(`audio-${id}`);
-            const icon = document.getElementById(`icon-${id}`);
-            audio.play(); // Reprendre après le seek
-            icon.className = "fa-solid fa-pause text-white";
-        }
-
-        function resetPlayer(id) {
-            const icon = document.getElementById(`icon-${id}`);
-            const slider = document.getElementById(`slider-${id}`);
-            icon.className = "fa-solid fa-play text-white";
-            slider.value = 0;
-        }
-
-
-        // --- REPLY SYSTEM (3. PREVIEW) ---
-        function setupReply(msgObj) {
-            replyingTo = msgObj;
-            const bar = document.getElementById('reply-bar');
-            const txt = document.getElementById('reply-text');
-            const thumbCont = document.getElementById('reply-thumb-container');
-            
-            bar.classList.remove('hidden');
-            bar.classList.add('flex');
-            thumbCont.innerHTML = ''; // Clear previous thumb
-
-            // Check Content for Preview
-            const content = msgObj.text;
-            let displayTxt = content;
-
-            if(content.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
-                displayTxt = "📷 Photo";
-                thumbCont.innerHTML = `<img src="${content}" class="reply-thumb">`;
-            } else if(content.match(/\.(mp4|mov)$/i)) {
-                displayTxt = "📹 Video";
-                thumbCont.innerHTML = `<video src="${content}" class="reply-thumb"></video>`; // Video thumb simple
-            } else if(content.match(/\.(mp3|wav)$/i)) {
-                displayTxt = "🎵 Voice Message";
+                // Video
+                if(['mp4','mov','avi','mkv'].includes(ext)) {
+                    return `<div class="media-content"><video src="${text}" controls playsinline poster="${text}#t=0.1"></video></div><small class="text-gray-400">${filename}</small>`;
+                }
+                // Audio
+                if(['mp3','wav','ogg'].includes(ext)) {
+                    return renderCustomVoicePlayer(text, filename);
+                }
+                // Fichier générique
+                return `<a href="${text}" target="_blank" class="text-blue-300">${filename}</a>`;
             }
             
-            txt.innerText = displayTxt;
+            // Liens URL standards
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return text.replace(urlRegex, '<a href="$1" target="_blank" class="underline text-blue-300">$1</a>');
         }
 
-        function cancelReply() {
-            replyingTo = null;
-            document.getElementById('reply-bar').classList.add('hidden');
+        function renderCustomVoicePlayer(src, filename) {
+            const playerId = `voice-${Math.random().toString(36).substr(2,9)}`;
+            return `
+                <div class="voice-player" data-src="${src}" id="${playerId}">
+                    <svg class="play-pause" viewBox="0 0 24 24" fill="white">
+                        <path d="M8 5v14l11-7z"/> <!-- Play -->
+                    </svg>
+                    <div class="progress-bar">
+                        <div class="wave-form">
+                            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                        </div>
+                        <div class="progress-fill"></div>
+                        <div class="seeker" style="left: 0%;"></div>
+                    </div>
+                    <span class="time-display">0:00</span>
+                </div>
+                <small class="text-gray-400">${filename}</small>
+            `;
         }
 
-        // --- 2. UPLOAD VIA WORKER (PUT) ---
-        async function handleFileUpload(input) {
-            const file = input.files[0];
-            if(!file) return;
+        function attachVoicePlayers() {
+            document.querySelectorAll('.voice-player').forEach(player => {
+                const audio = new Audio(player.dataset.src);
+                const playPause = player.querySelector('.play-pause');
+                const progressBar = player.querySelector('.progress-bar');
+                const progressFill = player.querySelector('.progress-fill');
+                const seeker = player.querySelector('.seeker');
+                const timeDisplay = player.querySelector('.time-display');
+                let isPlaying = false;
+                let isSeeking = false;
 
-            // Feedback visuel
-            document.getElementById('msg-input').placeholder = "Uploading...";
-            
-            try {
-                // Créer un nom de fichier unique
-                const filename = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
-                const uploadUrl = `${WORKER_URL}/${filename}`;
-
-                // PUT Request
-                const res = await fetch(uploadUrl, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': file.type },
-                    body: file
+                playPause.addEventListener('click', () => {
+                    if (isPlaying) {
+                        audio.pause();
+                        playPause.innerHTML = '<path d="M8 5v14l11-7z"/>';
+                    } else {
+                        audio.play();
+                        playPause.innerHTML = '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';
+                    }
+                    isPlaying = !isPlaying;
                 });
 
-                if(res.ok) {
-                    // Send URL as message
-                    sendMessage(uploadUrl);
-                } else {
-                    alert("Upload failed");
+                audio.addEventListener('timeupdate', () => {
+                    if (!isSeeking) {
+                        const progress = (audio.currentTime / audio.duration) * 100;
+                        progressFill.style.width = `${progress}%`;
+                        seeker.style.left = `${progress}%`;
+                        timeDisplay.textContent = formatTime(audio.currentTime);
+                    }
+                });
+
+                audio.addEventListener('loadedmetadata', () => {
+                    timeDisplay.textContent = '0:00';
+                });
+
+                audio.addEventListener('ended', () => {
+                    isPlaying = false;
+                    playPause.innerHTML = '<path d="M8 5v14l11-7z"/>';
+                    progressFill.style.width = '0%';
+                    seeker.style.left = '0%';
+                    timeDisplay.textContent = '0:00';
+                });
+
+                progressBar.addEventListener('touchstart', startSeek);
+                progressBar.addEventListener('mousedown', startSeek);
+
+                function startSeek(e) {
+                    isSeeking = true;
+                    seek(e);
+                    const moveEvent = 'ontouchstart' in window ? 'touchmove' : 'mousemove';
+                    const endEvent = 'ontouchstart' in window ? 'touchend' : 'mouseup';
+                    document.addEventListener(moveEvent, seek);
+                    document.addEventListener(endEvent, endSeek);
                 }
-            } catch(e) {
-                console.error(e);
-                alert("Erreur Upload");
-            } finally {
-                input.value = "";
-                document.getElementById('msg-input').placeholder = "Ekri yon mesaj...";
-            }
+
+                function seek(e) {
+                    const touch = e.touches ? e.touches[0] : e;
+                    const rect = progressBar.getBoundingClientRect();
+                    const x = touch.clientX - rect.left;
+                    const progress = Math.min(1, Math.max(0, x / rect.width));
+                    progressFill.style.width = `${progress * 100}%`;
+                    seeker.style.left = `${progress * 100}%`;
+                    audio.currentTime = progress * audio.duration;
+                }
+
+                function endSeek() {
+                    isSeeking = false;
+                    const moveEvent = 'ontouchstart' in window ? 'touchmove' : 'mousemove';
+                    const endEvent = 'ontouchstart' in window ? 'touchend' : 'mouseup';
+                    document.removeEventListener(moveEvent, seek);
+                    document.removeEventListener(endEvent, endSeek);
+                    if (isPlaying) audio.play();
+                }
+
+                function formatTime(seconds) {
+                    const m = Math.floor(seconds / 60);
+                    const s = Math.floor(seconds % 60);
+                    return `${m}:${s < 10 ? '0' : ''}${s}`;
+                }
+            });
         }
 
-        // --- SEND LOGIC ---
+        function openFullscreen(el) {
+            const media = el.querySelector('img, video');
+            const fs = document.getElementById('fs-media');
+            fs.innerHTML = media.outerHTML;
+            fs.classList.remove('hidden');
+        }
+
+        // --- INPUT & SENDING LOGIC ---
+
         function handleInput(el) {
             el.style.height = 'auto';
-            el.style.height = el.scrollHeight + 'px';
-            
+            el.style.height = (el.scrollHeight) + 'px';
+            updateActionButton();
+        }
+
+        function initActionBtn() {
+            const btn = document.getElementById('action-btn');
+            const icon = document.getElementById('action-icon');
+            const input = document.getElementById('msg-input');
+
+            btn.addEventListener('touchstart', startRecording, {passive: true});
+            btn.addEventListener('touchend', endRecordingOrSend);
+            btn.addEventListener('mousedown', startRecording);
+            btn.addEventListener('mouseup', endRecordingOrSend);
+        }
+
+        function updateActionButton() {
+            const input = document.getElementById('msg-input');
             const btn = document.getElementById('action-btn');
             const icon = document.getElementById('action-icon');
             
-            if(el.value.trim().length > 0) {
+            if(input.value.trim().length > 0) {
                 btn.classList.remove('mic-mode');
                 icon.className = "fa-solid fa-paper-plane";
             } else {
@@ -687,96 +881,125 @@
             }
         }
 
-        function initActionBtn() {
-            const btn = document.getElementById('action-btn');
-            let longPressTimer;
-            let isRec = false;
+        // --- VOICE RECORDER LOGIC ---
+        let longPressTimer;
+        let isRecording = false;
 
-            btn.addEventListener('touchstart', (e) => {
-                if(document.getElementById('msg-input').value.trim().length > 0) return;
-                e.preventDefault();
-                longPressTimer = setTimeout(startRec, 500);
-            });
+        function startRecording(e) {
+            const input = document.getElementById('msg-input');
+            if(input.value.trim().length > 0) return;
 
-            btn.addEventListener('touchend', (e) => {
-                clearTimeout(longPressTimer);
-                if(document.getElementById('msg-input').value.trim().length > 0) {
-                    sendMessage();
-                } else if(isRec) {
-                    stopRec();
-                    isRec = false;
-                }
-            });
-            
-            // Mouse support for desktop testing
-            btn.addEventListener('mousedown', (e) => {
-                if(document.getElementById('msg-input').value.trim().length > 0) return;
-                longPressTimer = setTimeout(startRec, 500);
-            });
-            btn.addEventListener('mouseup', () => {
-                clearTimeout(longPressTimer);
-                if(document.getElementById('msg-input').value.trim().length > 0) sendMessage();
-                else if(isRec) { stopRec(); isRec = false; }
-            });
-
-            function startRec() {
-                isRec = true;
+            e.preventDefault();
+            longPressTimer = setTimeout(async () => {
+                isRecording = true;
                 document.getElementById('msg-input').classList.add('hidden');
                 document.getElementById('recording-ui').classList.remove('hidden');
-                startVoice();
+                
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+                    mediaRecorder.start();
+                    startTimer();
+                } catch(err) {
+                    alert("Microphone non autorisé");
+                    cancelRecording();
+                }
+            }, 300);
+        }
+
+        function endRecordingOrSend(e) {
+            clearTimeout(longPressTimer);
+            const input = document.getElementById('msg-input');
+            
+            if(input.value.trim().length > 0) {
+                sendMessage();
+                return;
+            }
+
+            if(isRecording) {
+                stopTimer();
+                isRecording = false;
+                document.getElementById('msg-input').classList.remove('hidden');
+                document.getElementById('recording-ui').classList.add('hidden');
+                
+                if(mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                        uploadFile(audioBlob, `voice_${Date.now()}.mp3`, 'audio/mp3');
+                    };
+                }
             }
         }
-
-        async function startVoice() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                mediaRecorder.start();
-                
-                let sec = 0;
-                recordTimerInterval = setInterval(() => {
-                    sec++;
-                    document.getElementById('rec-timer').innerText = `0:0${sec}`;
-                }, 1000);
-            } catch(e) { alert("Mic Error"); }
-        }
-
-        function stopRec() {
-            clearInterval(recordTimerInterval);
+        
+        function cancelRecording() {
+            isRecording = false;
+            stopTimer();
+            if(mediaRecorder) mediaRecorder.stop();
             document.getElementById('msg-input').classList.remove('hidden');
             document.getElementById('recording-ui').classList.add('hidden');
-            if(mediaRecorder) {
-                mediaRecorder.stop();
-                mediaRecorder.onstop = async () => {
-                    const blob = new Blob(audioChunks, { type: 'audio/mp3' });
-                    // Create a File object from Blob to reuse handleFileUpload logic
-                    const file = new File([blob], "voice_msg.mp3", { type: "audio/mp3" });
-                    
-                    // Manually trigger upload logic
-                    const dummyInput = { files: [file] };
-                    await handleFileUpload(dummyInput);
-                };
+        }
+
+        function startTimer() {
+            let sec = 0;
+            const timerEl = document.getElementById('rec-timer');
+            recordTimerInterval = setInterval(() => {
+                sec++;
+                let m = Math.floor(sec/60);
+                let s = sec%60;
+                timerEl.innerText = `${m}:${s<10?'0':''}${s}`;
+            }, 1000);
+        }
+        function stopTimer() { clearInterval(recordTimerInterval); document.getElementById('rec-timer').innerText = "0:00"; }
+
+        // --- FILE ATTACHMENT & UPLOAD ---
+        async function handleFileSelect(input) {
+            const file = input.files[0];
+            if(!file) return;
+            
+            await uploadFile(file, file.name, file.type);
+            input.value = "";
+        }
+
+        async function uploadFile(file, filename, type) {
+            try {
+                const uniqueName = `${crypto.randomUUID()}_${filename}`;
+                const uploadRes = await fetch(`${UPLOAD_URL}${uniqueName}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': type},
+                    body: file
+                });
+                if (uploadRes.ok) {
+                    const url = `${UPLOAD_URL}${uniqueName}`;
+                    await postData(url);
+                    fetchMessages();
+                } else {
+                    alert("Échec de l'upload");
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Erreur d'upload");
             }
         }
 
-        async function sendMessage(contentOverride = null) {
+        // --- SEND API ---
+        async function sendMessage() {
             const input = document.getElementById('msg-input');
-            let text = contentOverride || input.value.trim();
+            const text = input.value.trim();
             if(!text) return;
-
-            // Check Reply
-            if(replyingTo) {
-                // Format reply simple (pour cet exemple, on ajoute juste le texte cité avant)
-                // text = `> ${replyingTo.text}\n\n${text}`; 
-                // Dans un vrai système, on enverrait reply_id au backend.
-                cancelReply();
-            }
-
+            
             input.value = '';
-            handleInput(input); // Reset button icon
+            input.style.height = 'auto';
+            updateActionButton();
+            
+            await postData(text);
+            fetchMessages();
+            cancelReply();
+        }
 
+        async function postData(content) {
             try {
                 await fetch(`${API}/send`, {
                     method: 'POST',
@@ -784,23 +1007,92 @@
                     body: JSON.stringify({
                         sender_tfid: user.tfid,
                         receiver_tfid: activePeer.tfid,
-                        message: text
+                        message: content
                     })
                 });
-                fetchMessages();
-            } catch(e) { console.error(e); }
+            } catch(e) { console.error("Send failed", e); }
         }
 
-        function showFS(src) {
-            const fs = document.getElementById('fs-media');
-            fs.innerHTML = `<img src="${src}" class="max-w-full max-h-full">`;
-            fs.classList.remove('hidden');
+        // --- REPLY LOGIC ---
+        function setReplyTo(message) {
+            replyingTo = message;
+            const preview = document.getElementById('reply-preview');
+            document.getElementById('reply-to-name').innerText = `Répondre à ${message.from === user.tfid ? 'vous' : activePeer.prenom}`;
+            
+            const mediaPreview = document.getElementById('reply-media-preview');
+            mediaPreview.innerHTML = '';
+            document.getElementById('reply-content').innerText = '';
+            
+            if (message.text.startsWith(UPLOAD_URL)) {
+                const ext = message.text.split('.').pop().toLowerCase();
+                if (['jpeg','jpg','gif','png'].includes(ext)) {
+                    mediaPreview.innerHTML = `<img src="${message.text}" class="reply-preview-media">`;
+                } else if (['mp4','mov','avi','mkv'].includes(ext)) {
+                    mediaPreview.innerHTML = `<video src="${message.text}" class="reply-preview-media" muted></video>`;
+                } else if (['mp3','wav','ogg'].includes(ext)) {
+                    mediaPreview.innerHTML = `<i class="fa-solid fa-microphone reply-preview-icon"></i>`;
+                } else {
+                    mediaPreview.innerHTML = `<i class="fa-solid fa-file reply-preview-icon"></i>`;
+                }
+            } else {
+                document.getElementById('reply-content').innerText = message.text.substring(0, 50) + (message.text.length > 50 ? '...' : '');
+            }
+            
+            preview.classList.remove('hidden');
+        }
+
+        function cancelReply() {
+            replyingTo = null;
+            document.getElementById('reply-preview').classList.add('hidden');
+            document.getElementById('reply-media-preview').innerHTML = '';
+        }
+
+        // --- SCROLL UTILS ---
+        function scrollToBottom() {
+            const d = document.getElementById('chat-messages');
+            d.scrollTo({ top: d.scrollHeight, behavior: 'smooth' });
         }
         
-        // Search Dummy
-        function doSearch() {
-            // Implémenté plus haut dans loadContacts modification
+        // --- SEARCH ---
+        async function doSearch() {
+            const q = document.getElementById('search-q').value.toLowerCase();
+            const res = await fetch(`${API}/users`);
+            const users = await res.json();
+            const filtered = users.filter(u => 
+                (u.nom.toLowerCase().includes(q) || u.prenom.toLowerCase().includes(q)) && u.tfid !== user.tfid
+            );
+            
+            const div = document.getElementById('search-results');
+            div.innerHTML = '';
+            filtered.forEach(u => {
+                div.innerHTML += `<div class="contact-card" onclick="openChat({tfid:'${u.tfid}',nom:'${u.nom}',prenom:'${u.prenom}'})">
+                    <div class="avatar">${u.nom[0]}</div>
+                    <div><b>${u.prenom} ${u.nom}</b><br><small>${u.tfid}</small></div>
+                </div>`;
+            });
         }
+
+        // --- UI OVERLAYS ---
+        function showLang() {
+            document.getElementById('backdrop').classList.add('show');
+            document.getElementById('lang-sheet').classList.add('show');
+        }
+        function closeOverlays() {
+            document.getElementById('backdrop').classList.remove('show');
+            document.getElementById('lang-sheet').classList.remove('show');
+        }
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('language', lang);
+            document.getElementById('msg-input').placeholder = translations[lang]["message-placeholder"];
+            closeOverlays();
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            alert("Copié: " + text);
+        }
+
     </script>
 </body>
 </html>
